@@ -1,4 +1,4 @@
-"""行为分类器 — 千问多模态模型 API 调用"""
+"""行为分类器 — 千问多模态模型（云端 API / 本地 vLLM）"""
 
 from __future__ import annotations
 
@@ -18,17 +18,15 @@ logger = get_logger()
 
 class BehaviorClassifier:
     """
-    调用千问多模态大模型进行行为识别。
+    调用多模态大模型进行行为识别。
+    支持两种模式：
+    - api:   调用云端 API（阿里云百炼千问）
+    - local: 调用本地 vLLM 部署的模型（OpenAI 兼容接口）
 
     工作流程：
-    1. 将人体区域关键帧（base64）发送给千问模型
+    1. 将人体区域关键帧（base64）发送给模型
     2. 模型分析连续帧中的动作变化
     3. 返回结构化的行为标签和描述
-
-    支持：
-    - 单帧 / 多帧分析
-    - 可扩展行为类别配置
-    - 自动解析模型输出为结构化结果
     """
 
     # 行为严重度映射
@@ -47,17 +45,20 @@ class BehaviorClassifier:
         temperature: float = 0.1,
         timeout: int = 30,
         behavior_classes: list[dict] | None = None,
+        model_mode: str = "api",
     ):
         """
         Args:
-            api_key: 千问 API Key（也支持环境变量 QWEN_API_KEY）
+            api_key: API Key（云端模式为千问 Key，本地模式为 vLLM --api-key）
             api_url: API 地址（OpenAI 兼容格式）
-            model: 模型名称
+            model: 模型名称 / served-model-name
             max_tokens: 最大生成 token 数
             temperature: 生成温度
             timeout: 请求超时（秒）
             behavior_classes: 行为类别配置列表
+            model_mode: "api"（云端）或 "local"（本地 vLLM）
         """
+        self.model_mode = model_mode
         self.api_key = api_key or os.environ.get("QWEN_API_KEY", "")
         self.api_url = api_url
         self.model = model
@@ -65,8 +66,13 @@ class BehaviorClassifier:
         self.temperature = temperature
         self.timeout = timeout
 
-        if not self.api_key:
-            logger.warning("千问 API Key 未设置！请在 config.yaml 或环境变量 QWEN_API_KEY 中配置")
+        if model_mode == "api" and not self.api_key:
+            logger.warning("云端 API 模式：API Key 未设置！请在 config.yaml 或环境变量 QWEN_API_KEY 中配置")
+        elif model_mode == "local":
+            logger.info(f"本地模型模式: endpoint={api_url}, model={model}")
+            # 本地模式 api_key 可以为空（vLLM 未设置 --api-key 时）
+            if not self.api_key:
+                self.api_key = "EMPTY"  # vLLM 无鉴权时的占位符
 
         # 初始化 OpenAI 兼容客户端
         self.client = OpenAI(
@@ -80,7 +86,7 @@ class BehaviorClassifier:
         self._build_prompt()
 
         logger.info(
-            f"行为分类器初始化完成: model={model}, "
+            f"行为分类器初始化完成: mode={model_mode}, model={model}, "
             f"categories={len(self.behavior_classes)}"
         )
 
@@ -211,14 +217,16 @@ class BehaviorClassifier:
             )
 
             elapsed = time.time() - start_time
-            logger.debug(f"千问 API 调用完成, 耗时 {elapsed:.2f}s")
+            mode_label = "本地" if self.model_mode == "local" else "云端"
+            logger.debug(f"{mode_label}模型调用完成, 耗时 {elapsed:.2f}s")
 
             # 解析响应
             content = response.choices[0].message.content or ""
             return self._parse_response(content)
 
         except Exception as e:
-            logger.error(f"千问 API 调用失败: {e}")
+            mode_label = "本地" if self.model_mode == "local" else "云端"
+            logger.error(f"{mode_label}模型调用失败: {e}")
             return BehaviorResult(
                 behavior_id="unknown",
                 behavior_label="未知",
@@ -228,7 +236,7 @@ class BehaviorClassifier:
 
     def _parse_response(self, content: str) -> BehaviorResult:
         """
-        解析千问模型的 JSON 响应。
+        解析模型的 JSON 响应。
 
         支持：
         - 纯 JSON 输出

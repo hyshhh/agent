@@ -1,9 +1,16 @@
 """
 智能救生行为识别 Agent — 主入口
 
+支持两种模型模式：
+    - api:   云端千问 API（默认）
+    - local: 本地 vLLM 部署的模型
+
 用法：
-    # 分析视频文件
+    # 云端 API 分析视频
     python main.py --source video --input /path/to/video.mp4
+
+    # 本地 vLLM 模型分析视频
+    python main.py --source video --input /path/to/video.mp4 --model-mode local
 
     # USB 摄像头
     python main.py --source camera --camera-id 0
@@ -11,12 +18,8 @@
     # RTSP 流
     python main.py --source rtsp --rtsp-url rtsp://192.168.1.100:554/stream
 
-    # 指定配置
-    python main.py --source video --input video.mp4 --config config.yaml
-
 环境变量：
-    QWEN_API_KEY    千问 API 密钥（必填）
-    QWEN_API_URL    千问 API 地址（可选）
+    QWEN_API_KEY    千问 API 密钥（云端模式必填）
 """
 
 from __future__ import annotations
@@ -92,17 +95,33 @@ def build_pipeline(args: argparse.Namespace, config: dict) -> Pipeline:
     )
 
     # ---- 行为分类器 ----
-    qw_cfg = config.get("qwen", {})
     behavior_classes = config.get("behavior_classes", None)
-    classifier = BehaviorClassifier(
-        api_key=args.api_key or qw_cfg.get("api_key", ""),
-        api_url=qw_cfg.get("api_url", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
-        model=qw_cfg.get("model", "qwen-vl-max"),
-        max_tokens=qw_cfg.get("max_tokens", 512),
-        temperature=qw_cfg.get("temperature", 0.1),
-        timeout=qw_cfg.get("timeout", 30),
-        behavior_classes=behavior_classes,
-    )
+    model_mode = args.model_mode or config.get("model_mode", "api")
+    
+    if model_mode == "local":
+        lm_cfg = config.get("local_model", {})
+        classifier = BehaviorClassifier(
+            api_key=args.api_key or lm_cfg.get("api_key", ""),
+            api_url=lm_cfg.get("api_url", "http://localhost:7890/v1"),
+            model=lm_cfg.get("model", "Qwen/Qwen3-VL-4B-Instruct"),
+            max_tokens=lm_cfg.get("max_tokens", 512),
+            temperature=lm_cfg.get("temperature", 0.1),
+            timeout=lm_cfg.get("timeout", 60),
+            behavior_classes=behavior_classes,
+            model_mode="local",
+        )
+    else:
+        qw_cfg = config.get("qwen", {})
+        classifier = BehaviorClassifier(
+            api_key=args.api_key or qw_cfg.get("api_key", ""),
+            api_url=qw_cfg.get("api_url", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
+            model=qw_cfg.get("model", "qwen3-vl-flash"),
+            max_tokens=qw_cfg.get("max_tokens", 512),
+            temperature=qw_cfg.get("temperature", 0.1),
+            timeout=qw_cfg.get("timeout", 30),
+            behavior_classes=behavior_classes,
+            model_mode="api",
+        )
 
     # ---- 流水线 ----
     pp_cfg = config.get("pipeline", {})
@@ -141,10 +160,17 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
+  # 使用云端 API 分析视频
   %(prog)s --source video --input pool_video.mp4
-  %(prog)s --source camera --camera-id 0
-  %(prog)s --source rtsp --rtsp-url rtsp://192.168.1.100:554/stream
-  %(prog)s --source video --input video.mp4 --api-key sk-xxx --no-display
+
+  # 使用本地 vLLM 模型分析视频
+  %(prog)s --source video --input pool_video.mp4 --model-mode local
+
+  # USB 摄像头 + 本地模型
+  %(prog)s --source camera --camera-id 0 --model-mode local
+
+  # RTSP 流 + 云端 API
+  %(prog)s --source rtsp --rtsp-url rtsp://192.168.1.100:554/stream --api-key sk-xxx --no-display
         """,
     )
 
@@ -189,6 +215,14 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="",
         help="千问 API Key (也可通过环境变量 QWEN_API_KEY 设置)",
+    )
+
+    parser.add_argument(
+        "--model-mode",
+        type=str,
+        choices=["api", "local"],
+        default=None,
+        help="模型运行模式: api(云端千问API) / local(本地vLLM部署), 优先级高于config.yaml",
     )
 
     parser.add_argument(
