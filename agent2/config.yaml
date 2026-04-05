@@ -1,0 +1,98 @@
+# ============================================
+# 智能救生行为识别 Agent - 全局配置
+# ============================================
+
+# 千问多模态模型配置
+qwen:
+  api_key: ""                    # 也可通过环境变量 QWEN_API_KEY 设置
+  api_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"  # 阿里云百炼 OpenAI 兼容接口
+  model: "qwen3-vl-flash"           # 使用的模型
+  max_tokens: 100
+  temperature: 0.01              # 低温度以获得更确定性的结果
+  timeout: 30                    # 请求超时（秒）
+
+# 人体检测器配置
+detector:
+  model: "yolov8n.pt"            # YOLOv8 模型文件（自动下载）
+  confidence: 0.5                # 检测置信度阈值
+  device: "cuda:0"                  # 推理设备: cpu 或 cuda:0
+  class_id: 0                    # COCO 中 person 类的 ID
+  detect_width: 160              # 检测推理宽度（0=保持原始分辨率）
+  detect_height: 160            # 检测推理高度（0=保持原始分辨率）
+
+# 关键帧提取配置
+frame_extractor:
+  padding_ratio: 0.15            # 人体框 padding 比例（四边各扩 15%）
+  keyframe_interval: 1           # 每隔几帧提取一帧关键帧
+  keyframe_count: 1              # 提取的关键帧数量上限
+  min_region_size: 32            # 最小有效区域像素（过小则跳过）
+
+# 行为类别定义（可扩展）
+behavior_classes:
+  - id: drowning
+    label_cn: 溺水
+    label_en: drowning
+    severity: critical            # critical / warning / normal
+    description: >
+      人员在水中失去自主行动能力，可能面部朝下，
+      四肢无规律挣扎或静止不动，有溺水风险。
+
+  - id: swimming
+    label_cn: 游泳
+    label_en: swimming
+    severity: normal
+    description: >
+      人员在水中正常游泳，四肢协调有规律地运动。
+
+  - id: climbing_fence
+    label_cn: 翻栏杆
+    label_en: climbing_fence
+    severity: warning
+    description: >
+      人员攀爬或翻越栏杆、围栏等障碍物。
+
+  - id: normal_walking
+    label_cn: 正常步行
+    label_en: normal_walking
+    severity: normal
+    description: >
+      人员正常行走或站立，姿态自然。
+  - id: waterhelping
+    label_cn: 水中帮助
+    label_en: waterhelping
+    severity: normal
+    description: >
+      水中人员抱住救生圈，救生圈为红色。
+
+# 视频源配置
+video_source:
+  camera_id: 0                   # USB 摄像头 ID
+  rtsp_url: ""                   # RTSP 流地址
+  frame_width: 640               # 目标帧宽度（0=保持原始）
+  frame_height: 480              # 目标帧高度（0=保持原始）
+  reconnect_threshold: 10        # 连续失败帧数触发重连
+  reconnect_delay: 2.0           # 重连等待时间（秒）
+
+# 输出配置
+output:
+  save_annotated: true           # 保存标注后的帧
+  save_crops: true               # 保存人体裁剪图
+  save_report: true              # 保存行为分析报告
+  output_dir: "output"           # 输出目录
+  report_format: "json"          # 报告格式: json / csv
+
+# 流水线配置
+pipeline:
+  process_every_n_frames: 1   # 每 N 帧处理一次（降低 API 调用频率）
+  max_concurrent: 1              # 最大并发 API 请求数
+  alert_cooldown: 5            # 同一行为告警冷却时间（秒）
+  display: true                  # 是否显示实时画面（需要 GUI）、视频窗口缩放比例
+  display_scale: 0.1             # 视频窗口缩放比例
+  camera_interval: 0.1           # 摄像头调用间隔（秒）
+  sustained_detection_frames: 1  # 连续N帧检测到目标才触发API调用（需求3）
+
+# 摄像头日志配置（需求2）
+camera_log:
+  enabled: true               # 是否启用摄像头行为日志
+  retention_hours: 2.0        # 日志保留时长（小时），超过自动删除
+  log_filename: "camera_behavior_log.json"  # 日志文件名

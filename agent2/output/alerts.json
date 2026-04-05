@@ -1,0 +1,20 @@
+[
+  {
+    "frame_index": 1,
+    "person_idx": 0,
+    "behavior_id": "climbing_fence",
+    "behavior_label": "翻栏杆",
+    "severity": "warning",
+    "description": "人物背对镜头，身体前倾，单腿已跨过金属栏杆，另一腿正向上攀爬，双手扶在栏杆上以维持平衡，呈现典型的翻越栏杆动作。",
+    "timestamp": 1775393624.2828605
+  },
+  {
+    "frame_index": 5,
+    "person_idx": 0,
+    "behavior_id": "climbing_fence",
+    "behavior_label": "翻栏杆",
+    "severity": "warning",
+    "description": "人物背对镜头，身体前倾并单膝跪在栏杆上，双手似乎正抓握或支撑栏杆，呈现攀爬或翻越栏杆的姿态。",
+    "timestamp": 1775393630.065726
+  }
+]

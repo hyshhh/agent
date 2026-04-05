@@ -1,0 +1,652 @@
+[
+  {
+    "timestamp": 1775392315.604,
+    "datetime": "2026-04-05 20:31:55",
+    "frame_index": 50,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物坐在室内环境中，身体姿态自然，头部略微前倾，嘴部微张似在说话或呼吸，佩戴耳机，背景为办公或生活空间，无明显剧烈动作，符合正常坐姿或轻微移动状态。"
+  },
+  {
+    "timestamp": 1775392324.603,
+    "datetime": "2026-04-05 20:32:04",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内环境，坐姿或静止状态，头部微侧，佩戴耳机，面部表情自然，无明显肢体移动，符合正常坐姿或轻微活动状态，未观察到溺水、游泳、翻栏杆或水中帮助等行为特征。"
+  },
+  {
+    "timestamp": 1775392333.777,
+    "datetime": "2026-04-05 20:32:13",
+    "frame_index": 150,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内环境，坐姿或静止状态，身体姿态自然，无明显剧烈动作；根据单帧图像无法确认其正在行走，但结合常见场景推断为正常活动状态，未见溺水、游泳、翻栏杆或水中帮助等异常行为。"
+  },
+  {
+    "timestamp": 1775392342.22,
+    "datetime": "2026-04-05 20:32:22",
+    "frame_index": 200,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内环境，身体呈坐姿或半坐姿，头部微低，右手靠近嘴部，佩戴耳机，姿态自然放松，无明显剧烈动作或异常行为，符合正常室内活动状态。"
+  },
+  {
+    "timestamp": 1775392353.301,
+    "datetime": "2026-04-05 20:32:33",
+    "frame_index": 250,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物坐在室内环境中，身体姿态稳定，右手轻触脸颊，佩戴耳机，无明显移动或剧烈动作，符合静坐或休息状态，但根据行为分类，该场景中未观察到典型‘步行’动作；然而在给定的五个行为类别中，该人物处于静态坐姿，无游泳、溺水、翻栏杆或水中帮助等行为特征，最接近‘正常步行’的误判可能性较低，实际应为‘正常坐姿’，但因选项限制且无‘sitting’类，结合其身体未发生剧烈位移，暂归入‘normal_walking’（注：此为受限分类下的最优匹配，实际更宜为静坐，但按题设仅提供五类，故选最不具冲突的‘normal_walking’）"
+  },
+  {
+    "timestamp": 1775392362.577,
+    "datetime": "2026-04-05 20:32:42",
+    "frame_index": 300,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内环境，坐姿或静止状态，无明显移动动作；根据单帧图像无法确认动态行为，但姿态自然、稳定，未见异常挣扎或攀爬等动作，符合正常静止或缓步移动的特征。"
+  },
+  {
+    "timestamp": 1775392410.578,
+    "datetime": "2026-04-05 20:33:30",
+    "frame_index": 50,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内环境，坐姿或静止状态，手部靠近面部，佩戴耳机，无明显移动或剧烈动作，符合正常坐姿或休息状态，未观察到与水相关的场景或危险行为。"
+  },
+  {
+    "timestamp": 1775392419.225,
+    "datetime": "2026-04-05 20:33:39",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内环境，坐姿或静止状态，手部靠近面部，佩戴耳机，无明显移动或剧烈动作，符合正常休息或静坐状态。"
+  },
+  {
+    "timestamp": 1775392430.862,
+    "datetime": "2026-04-05 20:33:50",
+    "frame_index": 150,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内环境，坐姿或静止状态，未见明显移动肢体或行走动作；但根据提供的行为类别，最接近的是‘正常步行’（因该人物无其他可匹配行为），实际更可能为静坐或专注工作状态。然而，依据严格分类规则，若无明确步行动作，则应归为‘unknown’。但鉴于选项中无‘sitting’，且人物头部微倾、身体稳定，结合常见场景推断其可能处于正常活动状态，暂按‘normal_walking’处理——注：此为受限于选项的近似判断，实际更宜标注为unknown。经重新审慎判断：图像中人物无任何步行特征（如步态、腿部移动、位置变化），故应修正为："
+  },
+  {
+    "timestamp": 1775392438.93,
+    "datetime": "2026-04-05 20:33:58",
+    "frame_index": 200,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内环境，坐姿或静止状态，无明显移动动作；根据单帧图像无法确认其正在行走，但结合常见场景推断为正常活动状态，未见异常行为。"
+  },
+  {
+    "timestamp": 1775392448.75,
+    "datetime": "2026-04-05 20:34:08",
+    "frame_index": 250,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内环境，坐姿或半坐姿，身体稳定，头部微倾，视线朝前下方，无明显剧烈动作；根据单帧画面无法确认动态行走，但结合常见场景推断为正常坐姿或缓步移动状态，未见溺水、游泳、翻栏杆或水中帮助等异常行为。"
+  },
+  {
+    "timestamp": 1775392544.035,
+    "datetime": "2026-04-05 20:35:44",
+    "frame_index": 50,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内办公环境，身体呈坐姿或半坐姿，头部和上身有轻微移动，面部朝向一侧，嘴部微张似在说话或反应；画面中存在明显的手部运动模糊，表明其正在用手部进行操作或比划动作，整体姿态自然，无异常危险行为。"
+  },
+  {
+    "timestamp": 1775392552.708,
+    "datetime": "2026-04-05 20:35:52",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内办公环境，坐在椅子上，身体姿态自然，头部微低，视线朝下，无明显剧烈动作，符合在办公桌前就坐或缓慢移动的正常状态。"
+  },
+  {
+    "timestamp": 1775392689.112,
+    "datetime": "2026-04-05 20:38:09",
+    "frame_index": 50,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐于椅子上，身体姿态自然放松，头部微侧，无明显肢体大幅动作，符合静坐或缓慢移动时的正常状态；画面中未见明显行走动作，但基于连续关键帧（单帧）判断其为静止或低动态的正常活动状态，归类为正常步行（此处"
+  },
+  {
+    "timestamp": 1775392698.726,
+    "datetime": "2026-04-05 20:38:18",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内办公环境，坐于椅子上，身体姿态自然，头部正直，目光向前，无明显肢体剧烈运动，符合正常坐姿或缓慢移动状态；未见溺水、游泳、翻栏杆或水中帮助等行为特征。"
+  },
+  {
+    "timestamp": 1775392707.719,
+    "datetime": "2026-04-05 20:38:27",
+    "frame_index": 150,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物坐在椅子上，身体姿态自然，头部略微转向一侧，视线朝向画面右侧，无明显肢体剧烈运动，符合室内静坐或缓慢移动时的正常状态。"
+  },
+  {
+    "timestamp": 1775392736.708,
+    "datetime": "2026-04-05 20:38:56",
+    "frame_index": 50,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```"
+  },
+  {
+    "timestamp": 1775392744.087,
+    "datetime": "2026-04-05 20:39:04",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```"
+  },
+  {
+    "timestamp": 1775392778.82,
+    "datetime": "2026-04-05 20:39:38",
+    "frame_index": 50,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \""
+  },
+  {
+    "timestamp": 1775392786.983,
+    "datetime": "2026-04-05 20:39:46",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \""
+  },
+  {
+    "timestamp": 1775392868.914,
+    "datetime": "2026-04-05 20:41:08",
+    "frame_index": 550,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"画面中人物呈"
+  },
+  {
+    "timestamp": 1775392883.905,
+    "datetime": "2026-04-05 20:41:23",
+    "frame_index": 650,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"画面中人物处于"
+  },
+  {
+    "timestamp": 1775392891.489,
+    "datetime": "2026-04-05 20:41:31",
+    "frame_index": 700,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内环境"
+  },
+  {
+    "timestamp": 1775392899.061,
+    "datetime": "2026-04-05 20:41:39",
+    "frame_index": 750,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内环境"
+  },
+  {
+    "timestamp": 1775392906.724,
+    "datetime": "2026-04-05 20:41:46",
+    "frame_index": 800,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公"
+  },
+  {
+    "timestamp": 1775392915.023,
+    "datetime": "2026-04-05 20:41:55",
+    "frame_index": 850,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公"
+  },
+  {
+    "timestamp": 1775392951.622,
+    "datetime": "2026-04-05 20:42:31",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"画面中可见人物的上半身及手臂，穿着深色短袖，手臂自然下垂并有轻微摆动，手部呈放松握拳状，符合"
+  },
+  {
+    "timestamp": 1775392952.65,
+    "datetime": "2026-04-05 20:42:32",
+    "frame_index": 100,
+    "person_idx": 1,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物呈站立或微倾身姿态，头部下垂，视线向下，佩戴眼镜和白色耳机线，身穿深色连帽衫。从身体姿态和环境背景"
+  },
+  {
+    "timestamp": 1775393008.578,
+    "datetime": "2026-04-05 20:43:28",
+    "frame_index": 550,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"画面中人物呈侧身姿态，头部微低，身体有向前移动的动态模糊痕迹，衣着为深色上衣与裤子，背景可见建筑物及地面"
+  },
+  {
+    "timestamp": 1775393029.218,
+    "datetime": "2026-04-05 20:43:49",
+    "frame_index": 700,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物呈站立姿态，身体略微前倾，双臂自然下垂并有轻微摆动，似乎正在室内环境中行走或移动。未见明显异常动作，如"
+  },
+  {
+    "timestamp": 1775393061.211,
+    "datetime": "2026-04-05 20:44:21",
+    "frame_index": 950,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"画面中人物呈侧身姿态，身体略微前倾，手臂自然摆动，符合行走时的动态特征；由于图像存在明显运动模糊，但整体姿态稳定"
+  },
+  {
+    "timestamp": 1775393076.062,
+    "datetime": "2026-04-05 20:44:36",
+    "frame_index": 1050,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物站立于室内环境中，上身穿着黑色长袖卫衣，佩戴白色挂绳，右手自然下垂并握持一黑色物体（疑似手提包带"
+  },
+  {
+    "timestamp": 1775393083.269,
+    "datetime": "2026-04-05 20:44:43",
+    "frame_index": 1100,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物身穿黑色连帽衫，戴眼镜，身体前倾，头部微低，呈行走或俯身姿态；背景为室内环境，有设备柜等，未"
+  },
+  {
+    "timestamp": 1775393098.932,
+    "datetime": "2026-04-05 20:44:58",
+    "frame_index": 1200,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"画面中人物为近景特写，身体呈前倾或侧身姿态，因运动模糊导致细节不清，但整体姿态符合行走或移动中的状态；背景"
+  },
+  {
+    "timestamp": 1775393099.93,
+    "datetime": "2026-04-05 20:44:59",
+    "frame_index": 1200,
+    "person_idx": 1,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"unknown\",\n  \"behavior_label\": \"未知\",\n  \"description\": \"图像质量极低，严重模糊且光线昏暗，无法辨识人物具体动作、姿态或环境细节，无法判断其行为。\",\n  \"severity\": \"normal\",\n  \"confidence"
+  },
+  {
+    "timestamp": 1775393107.787,
+    "datetime": "2026-04-05 20:45:07",
+    "frame_index": 1250,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐在椅子上，身体姿态自然，头部略微转向一侧，无明显剧烈动作或异常行为，符合正常坐姿或缓步移动时"
+  },
+  {
+    "timestamp": 1775393116.173,
+    "datetime": "2026-04-05 20:45:16",
+    "frame_index": 1300,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐于椅子上，身体姿态自然，头部微侧，无明显剧烈动作或异常行为，符合正常坐姿或缓步移动时"
+  },
+  {
+    "timestamp": 1775393124.001,
+    "datetime": "2026-04-05 20:45:24",
+    "frame_index": 1350,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公或实验环境，坐于椅子上，身体姿态自然，头部微侧，无明显剧烈动作，符合正常就坐或缓慢移动时的状态。\","
+  },
+  {
+    "timestamp": 1775393132.397,
+    "datetime": "2026-04-05 20:45:32",
+    "frame_index": 1400,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内环境，坐姿或静止状态，身体姿态自然，无明显剧烈动作；背景为办公或实验环境，未见水中、栏杆等特定"
+  },
+  {
+    "timestamp": 1775393142.097,
+    "datetime": "2026-04-05 20:45:42",
+    "frame_index": 1450,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐姿端正，身体稳定，头部自然转向一侧，无明显肢体移动或剧烈动作，符合在室内正常就坐或缓慢移动的状态"
+  },
+  {
+    "timestamp": 1775393195.582,
+    "datetime": "2026-04-05 20:46:35",
+    "frame_index": 50,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物坐在办公椅上，身体姿态自然，头部略微转向一侧，双眼睁开，面部表情平静，未见明显肢体剧烈运动或异常动作。背景为办公室环境"
+  },
+  {
+    "timestamp": 1775393203.664,
+    "datetime": "2026-04-05 20:46:43",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐于椅子上，身体姿态自然，头部正视前方，无明显剧烈动作或异常行为，符合正常就坐或缓慢移动时"
+  },
+  {
+    "timestamp": 1775393211.749,
+    "datetime": "2026-04-05 20:46:51",
+    "frame_index": 150,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐于椅子上，身体姿态自然，面部朝向镜头，无明显剧烈动作或异常行为，符合正常坐姿或轻微移动状态"
+  },
+  {
+    "timestamp": 1775393221.07,
+    "datetime": "2026-04-05 20:47:01",
+    "frame_index": 200,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐于椅子上，身体姿态自然，头部正对前方，无明显剧烈动作或异常行为，符合正常坐姿或缓步移动"
+  },
+  {
+    "timestamp": 1775393228.21,
+    "datetime": "2026-04-05 20:47:08",
+    "frame_index": 250,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内环境，坐姿或静止状态，头部微转，面部朝向侧前方，无明显肢体移动，符合在办公或学习环境中正常就坐"
+  },
+  {
+    "timestamp": 1775393235.996,
+    "datetime": "2026-04-05 20:47:15",
+    "frame_index": 300,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐于椅子上，身体姿态自然，头部微侧，目光向前下方，无明显剧烈动作或异常行为，符合在办公场景中"
+  },
+  {
+    "timestamp": 1775393243.325,
+    "datetime": "2026-04-05 20:47:23",
+    "frame_index": 350,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物坐在办公椅上，身体前倾，头部微低，视线向下，似乎在专注看前方桌面或屏幕。姿态自然放松，无明显剧烈动作，符合"
+  },
+  {
+    "timestamp": 1775393252.871,
+    "datetime": "2026-04-05 20:47:32",
+    "frame_index": 400,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐在椅子上，身体姿态自然，头部微侧，无明显剧烈动作或异常行为，符合正常坐姿或缓步移动时的状态"
+  },
+  {
+    "timestamp": 1775393260.82,
+    "datetime": "2026-04-05 20:47:40",
+    "frame_index": 450,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物坐在办公椅上，身体姿态自然，头部略微转向一侧，处于静坐状态，无明显肢体移动，符合在室内环境中正常就坐或短暂停留"
+  },
+  {
+    "timestamp": 1775393268.871,
+    "datetime": "2026-04-05 20:47:48",
+    "frame_index": 500,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物坐在办公椅上，身体姿态自然，面向前方，无明显剧烈动作或异常行为，符合在室内环境中正常就坐或轻微移动的状态。\",\n  \"severity"
+  },
+  {
+    "timestamp": 1775393277.944,
+    "datetime": "2026-04-05 20:47:57",
+    "frame_index": 550,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物坐在办公椅上，身体姿态自然，头部略微转向一侧，佩戴眼镜和耳机，背景为办公室环境（有办公桌、电脑椅、柜子等），"
+  },
+  {
+    "timestamp": 1775393286.298,
+    "datetime": "2026-04-05 20:48:06",
+    "frame_index": 600,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐在办公椅上，身体姿态自然，面向镜头，无明显剧烈动作或异常行为，符合正常坐姿或轻微移动状态。\","
+  },
+  {
+    "timestamp": 1775393317.972,
+    "datetime": "2026-04-05 20:48:37",
+    "frame_index": 50,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐在椅子上，身体姿态自然，头部略微转向一侧，无明显剧烈动作或异常行为，符合正常坐姿或轻微移动状态。\","
+  },
+  {
+    "timestamp": 1775393326.669,
+    "datetime": "2026-04-05 20:48:46",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐于椅子上，身体姿态自然，头部微侧，无明显剧烈动作或异常行为，符合正常坐姿或轻微移动状态。\","
+  },
+  {
+    "timestamp": 1775393335.244,
+    "datetime": "2026-04-05 20:48:55",
+    "frame_index": 150,
+    "person_idx": 0,
+    "behavior_id": "unknown",
+    "behavior_label": "未知",
+    "severity": "normal",
+    "description": "模型输出解析失败: ```json\n{\n  \"behavior_id\": \"normal_walking\",\n  \"behavior_label\": \"正常步行\",\n  \"description\": \"人物处于室内办公环境，坐在椅子上，身体姿态自然，头部略微转向一侧，无明显剧烈动作或异常行为，符合正常坐姿或轻微移动状态。\","
+  },
+  {
+    "timestamp": 1775393360.691,
+    "datetime": "2026-04-05 20:49:20",
+    "frame_index": 50,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内办公环境，坐在椅子上，身体姿态自然，头部正对前方，无明显剧烈动作或异常行为，符合正常坐姿或轻微移动状态。"
+  },
+  {
+    "timestamp": 1775393368.95,
+    "datetime": "2026-04-05 20:49:28",
+    "frame_index": 100,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内办公环境，坐于椅子上，身体姿态自然，头部微倾，视线向下，无明显剧烈动作，符合在办公桌前就坐或缓慢移动的正常状态。"
+  },
+  {
+    "timestamp": 1775393377.304,
+    "datetime": "2026-04-05 20:49:37",
+    "frame_index": 150,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内办公环境，坐在椅子上，身体姿态自然，头部正对前方，无明显剧烈动作或异常行为，符合正常坐姿或缓慢移动状态。"
+  },
+  {
+    "timestamp": 1775393385.156,
+    "datetime": "2026-04-05 20:49:45",
+    "frame_index": 200,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内办公环境，坐于办公椅上，一手持深色瓶状物靠近嘴部，另一手握持小型设备（疑似遥控器或手机），姿态自然放松，无明显剧烈动作，符合正常坐姿下的日常行为。"
+  },
+  {
+    "timestamp": 1775393393.274,
+    "datetime": "2026-04-05 20:49:53",
+    "frame_index": 250,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物坐在办公椅上，身体姿态自然，面向前方，处于室内办公环境，无明显剧烈动作或异常行为，符合正常坐姿或轻微移动状态。"
+  },
+  {
+    "timestamp": 1775393401.744,
+    "datetime": "2026-04-05 20:50:01",
+    "frame_index": 300,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物坐在办公椅上，身体前倾，头部略微转向右侧，视线朝向右前方，姿态自然放松，处于室内办公环境中的静坐或轻微移动状态，无明显剧烈动作。"
+  },
+  {
+    "timestamp": 1775393411.214,
+    "datetime": "2026-04-05 20:50:11",
+    "frame_index": 350,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物坐在办公椅上，身体姿态稳定，面向镜头，处于室内办公环境，无明显移动或剧烈动作，符合正常坐姿或静止状态，未观察到游泳、溺水、翻栏杆或水中帮助等行为特征。"
+  },
+  {
+    "timestamp": 1775393419.533,
+    "datetime": "2026-04-05 20:50:19",
+    "frame_index": 400,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内办公环境，坐在椅子上，身体姿态自然，头部略微前倾，面部朝向镜头方向，无明显剧烈动作或异常行为，符合正常坐姿或轻微移动状态。"
+  },
+  {
+    "timestamp": 1775393427.186,
+    "datetime": "2026-04-05 20:50:27",
+    "frame_index": 450,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物处于室内办公环境，坐在办公椅上，身体姿态自然，头部略微转向一侧，无明显剧烈动作或异常行为，符合正常坐姿或轻微移动状态。"
+  },
+  {
+    "timestamp": 1775393435.02,
+    "datetime": "2026-04-05 20:50:35",
+    "frame_index": 500,
+    "person_idx": 0,
+    "behavior_id": "normal_walking",
+    "behavior_label": "正常步行",
+    "severity": "normal",
+    "description": "人物坐在办公椅上，身体姿态自然，头部略微转向一侧，处于静坐状态，无明显肢体移动或异常动作，符合在室内办公环境中的正常坐姿行为。"
+  }
+]

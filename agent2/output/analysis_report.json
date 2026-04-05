@@ -1,0 +1,11 @@
+{
+  "source": "video",
+  "duration_seconds": 10.66,
+  "total_frames": 21,
+  "processed_frames": 5,
+  "total_detections": 0,
+  "behavior_counts": {
+    "climbing_fence": 5
+  },
+  "alert_count": 2
+}
