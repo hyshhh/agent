@@ -189,7 +189,7 @@ python main.py --source video --input ~/videos/pool.mp4
 
 如果在没有显示器的服务器上运行：
 ```bash
-python main.py --source video --input video.mp4 --no-display
+python main.py --source video --input /media/ddc/新加卷/hys/qmy/agent/agent2v1/2.mp4 --no-display
 ```
 
 ---
