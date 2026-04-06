@@ -125,13 +125,15 @@ class BehaviorClassifier:
         categories_text = ""
         for cls in self.behavior_classes:
             categories_text += (
-                f"- **{cls['id']}** ({cls['label_cn']}): {cls['description'].strip()}\n"
+                f"- **{cls['id']}** {cls['label_en']}): "
+                f"{cls['description'].strip()} "
+                f"[severity: {cls['severity']}]\n"
             )
 
         valid_ids = [cls["id"] for cls in self.behavior_classes]
 
         self.system_prompt = (
-            "你是一个专业的救生行为分析AI。你的任务是分析提供的图像序列（连续关键帧），"
+            "你是一个专业的救生行为分析AI。你的任务是"
             "识别画面中人物的行为。\n\n"
             "## 可识别的行为类别\n"
             f"{categories_text}\n"
@@ -139,11 +141,11 @@ class BehaviorClassifier:
             "请严格按以下 JSON 格式输出，不要包含其他内容：\n"
             "```json\n"
             "{\n"
-            '  "behavior_id": "<行为ID>",\n'
-            '  "behavior_label": "<行为中文标签>",\n'
-            '  "description": "<详细行为描述，包括观察到的动作细节>",\n'
-            '  "severity": "<严重等级: critical/warning/normal>",\n'
-            '  "confidence": <0.0-1.0的置信度>\n'
+            ' "behavior_id": "<行为ID>",\n'
+            ' "behavior_label": "<行为中文标签>",\n'
+            ' "description": "<详细行为描述>",\n'
+            ' "severity": "<严重等级: critical/warning/normal>",\n'
+            ' "confidence": <0.0-1.0的置信度>\n'
             "}\n"
             "```\n\n"
             f"behavior_id 必须是以下之一: {valid_ids}\n"
