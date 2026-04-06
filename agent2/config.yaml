@@ -28,11 +28,11 @@ local_model:
 # 人体检测器配置
 detector:
   model: "yolov8n.pt"            # YOLOv8 模型文件（自动下载）
-  confidence: 0.5                # 检测置信度阈值
-  device: "cuda:0"                  # 推理设备: cpu 或 cuda:0
+  confidence: 0.2                # 检测置信度阈值
+  device: "cuda:0"               # 推理设备: cpu 或 cuda:0
   class_id: 0                    # COCO 中 person 类的 ID
-  detect_width: 160              # 检测推理宽度（0=保持原始分辨率）
-  detect_height: 160            # 检测推理高度（0=保持原始分辨率）
+  detect_width: 640              # 检测推理宽度（0=保持原始分辨率）
+  detect_height: 640             # 检测推理高度（0=保持原始分辨率）
 
 # 目标跟踪配置（ByteTrack）
 tracker:
@@ -50,7 +50,7 @@ frame_extractor:
   keyframe_count: 1              # 提取的关键帧数量上限
   min_region_size: 32            # 最小有效区域像素（过小则跳过）
   adaptive_padding: true         # 自适应 padding（小目标自动放大 padding）
-  pixel_threshold: 10000         # 最小裁剪面积阈值（像素²），低于此值自动增大 padding
+  pixel_threshold: 20000         # 最小裁剪面积阈值（像素²），低于此值自动增大 padding
 
 # 行为类别定义（可扩展）
 behavior_classes:
