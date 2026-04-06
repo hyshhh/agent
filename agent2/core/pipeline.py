@@ -357,7 +357,8 @@ class Pipeline:
         """
         分析帧缓冲区中的内容。
 
-        对缓冲区中的每个人物提取关键帧并调用模型分析。
+        为每个人物提取关键帧并调用模型分析。
+        以 last_detections 顺序为基准，确保 behaviors 与 detections 一一对应。
         """
         if not self._frame_buffer:
             return None
@@ -374,25 +375,37 @@ class Pipeline:
             detections=last_detections,
         )
 
-        # 为每个人物提取关键帧并分析
+        # 提取关键帧 {person_key: [base64_frames]}
+        tracker_enabled = getattr(self.detector, "tracker_enabled", False)
         person_keyframes = self.extractor.extract_multi_person_keyframes(
-            list(self._frame_buffer)
+            list(self._frame_buffer),
+            tracker_enabled=tracker_enabled,
         )
 
-        behaviors: list[BehaviorResult] = []
+        # ---- 以 last_detections 顺序为基准，逐人分析 ----
+        # 用 (person_key, result) 二元组，确保每个 behavior 都带有明确归属
+        tagged_behaviors: list[tuple[int, BehaviorResult]] = []
+        has_tracking = tracker_enabled and any(
+            d.track_id is not None for d in last_detections
+        )
 
-        for person_key, keyframes_b64 in person_keyframes.items():
+        for det_idx, det in enumerate(last_detections):
+            # 确定该 detection 对应的 person_key
+            if has_tracking:
+                person_key = det.track_id
+            else:
+                person_key = det_idx
+
+            # 查找该人物的关键帧
+            keyframes_b64 = person_keyframes.get(person_key)
             if not keyframes_b64:
                 continue
 
             # 调用千问模型
             result = self.classifier.classify(keyframes_b64)
-            behaviors.append(result)
+            tagged_behaviors.append((person_key, result))
 
-            # person_key 为 track_id（有跟踪）或 list index（无跟踪）
-            person_label = f"track#{person_key}" if any(
-                d.track_id is not None for d in last_detections
-            ) else f"#{person_key}"
+            person_label = f"track#{person_key}" if has_tracking else f"#{person_key}"
 
             logger.info(
                 f"[帧 {frame_index}] 人物{person_label}: "
@@ -400,11 +413,9 @@ class Pipeline:
                 f"[{result.severity.value}]"
             )
 
-            # 保存裁剪图 — 用 person_key 匹配对应的 detection
+            # 保存裁剪图
             if self.save_crops:
-                target_det = self._find_detection(last_detections, person_key)
-                if target_det is not None:
-                    self._save_crop(frame, target_det, frame_index, person_key)
+                self._save_crop(frame, det, frame_index, person_key)
 
             # 告警处理
             if result.is_alert():
@@ -423,15 +434,22 @@ class Pipeline:
                 logger.debug(f"日志条目已添加: frame_index={frame_index}, person={person_label}, behavior={result.behavior_id}")
                 logger.debug(f"当前日志条目数: {self._camera_log.entry_count}")
 
+        # 提取纯 behaviors 列表（保持旧接口兼容）
+        behaviors = [r for _, r in tagged_behaviors]
+        behavior_dicts = [
+            {
+                "person_key": pk,
+                "behavior_label": r.behavior_label,
+                "severity": r.severity.value,
+            }
+            for pk, r in tagged_behaviors
+        ]
         analysis.behaviors = behaviors
+        analysis.behavior_dicts = behavior_dicts
         analysis.processing_time = time.time() - start_time
 
         # 保存标注帧
         if self.save_annotated:
-            behavior_dicts = [
-                {"behavior_label": b.behavior_label, "severity": b.severity.value}
-                for b in behaviors
-            ]
             annotated = draw_detections(frame, last_detections, behavior_dicts)
             path = os.path.join(self.output_dir, "annotated", f"frame_{frame_index:06d}.jpg")
             save_image(annotated, path)
@@ -447,11 +465,8 @@ class Pipeline:
     ) -> np.ndarray:
         """绘制带检测框和行为标签的帧"""
         behavior_dicts = None
-        if analysis and analysis.behaviors:
-            behavior_dicts = [
-                {"behavior_label": b.behavior_label, "severity": b.severity.value}
-                for b in analysis.behaviors
-            ]
+        if analysis and analysis.behavior_dicts:
+            behavior_dicts = analysis.behavior_dicts
 
         annotated = draw_detections(frame, detections, behavior_dicts)
 

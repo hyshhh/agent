@@ -185,37 +185,49 @@ class FrameExtractor:
     def extract_multi_person_keyframes(
         self,
         frame_buffer: list[tuple[np.ndarray, list[PersonDetection]]],
+        tracker_enabled: bool = True,
     ) -> dict[int, list[str]]:
         """
         为帧缓冲区中的每个人物分别提取关键帧序列。
 
         优先使用 track_id（ByteTrack 跟踪 ID）做人物归组；
-        若 track_id 全部为 None（未启用跟踪），回退到 list index 归组。
+        若未启用跟踪，按单帧逐人独立分析（避免跨帧身份混合）。
+
+        Args:
+            frame_buffer: [(frame, detections), ...] 缓冲区
+            tracker_enabled: 是否已启用跟踪（由 pipeline 传入，不靠运行时嗅探）
 
         Returns:
             {person_key: [base64_frame, ...], ...}
-            person_key 为 track_id（int）或 fallback list index（int）
+            person_key 为 track_id（有跟踪）或 list index（无跟踪，仅限单帧内）
         """
         if not frame_buffer:
             return {}
 
-        # 判断是否启用跟踪
-        has_tracking = any(
+        # 判断实际是否获得了 track_id（配置说启用但实际可能没有时，以实际为准）
+        has_tracking = tracker_enabled and any(
             det.track_id is not None
             for _, detections in frame_buffer
             for det in detections
         )
 
-        # 统计每个人出现的帧
-        person_frames: dict[int, list[tuple[np.ndarray, PersonDetection]]] = {}
-
-        for frame, detections in frame_buffer:
-            for idx, det in enumerate(detections):
-                # 用 track_id 做 key，无跟踪时回退到 list index
-                key = det.track_id if has_tracking and det.track_id is not None else idx
-                if key not in person_frames:
-                    person_frames[key] = []
-                person_frames[key].append((frame, det))
+        if has_tracking:
+            # ===== 跟踪模式：按 track_id 跨帧归组 =====
+            person_frames: dict[int, list[tuple[np.ndarray, PersonDetection]]] = {}
+            for frame, detections in frame_buffer:
+                for det in detections:
+                    if det.track_id is None:
+                        continue
+                    key = det.track_id
+                    if key not in person_frames:
+                        person_frames[key] = []
+                    person_frames[key].append((frame, det))
+        else:
+            # ===== 无跟踪模式：只用最新一帧，逐人独立分析 =====
+            last_frame, last_detections = frame_buffer[-1]
+            person_frames = {}
+            for idx, det in enumerate(last_detections):
+                person_frames[idx] = [(last_frame, det)]
 
         result: dict[int, list[str]] = {}
 

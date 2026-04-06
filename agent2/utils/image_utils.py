@@ -146,7 +146,8 @@ def draw_detections(
     Args:
         frame: 原始帧（BGR）
         detections: PersonDetection 列表
-        behaviors: 行为结果列表，index 与 detections 对应
+        behaviors: 行为结果列表，每个 dict 需含 "person_key" 用于匹配
+                   格式: {"person_key": int, "behavior_label": str, "severity": str}
 
     Returns:
         标注后的帧
@@ -158,6 +159,14 @@ def draw_detections(
         "normal": (0, 255, 0),     # 绿色
     }
 
+    # 构建 person_key → behavior 的查找表（避免 index 对齐错位）
+    behavior_lookup = {}
+    if behaviors:
+        for b in behaviors:
+            pk = b.get("person_key")
+            if pk is not None:
+                behavior_lookup[pk] = b
+
     for i, det in enumerate(detections):
         bbox = det.bbox
         x1, y1 = int(bbox.x1), int(bbox.y1)
@@ -167,12 +176,16 @@ def draw_detections(
         track_prefix = ""
         if hasattr(det, "track_id") and det.track_id is not None:
             track_prefix = f"[ID:{det.track_id}] "
-        label = f"{track_prefix}Person {bbox.confidence:.2f}"
 
-        if behaviors and i < len(behaviors):
-            b = behaviors[i]
+        # 按 track_id 或 list index 匹配行为
+        person_key = det.track_id if det.track_id is not None else i
+        b = behavior_lookup.get(person_key)
+
+        if b:
             color = severity_colors.get(b.get("severity", "normal"), (0, 255, 0))
             label = f"{track_prefix}{b.get('behavior_label', '?')} {bbox.confidence:.2f}"
+        else:
+            label = f"{track_prefix}Person {bbox.confidence:.2f}"
 
         cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
 

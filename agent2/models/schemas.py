@@ -88,6 +88,7 @@ class FrameAnalysis:
     frame_height: int
     detections: list[PersonDetection] = field(default_factory=list)
     behaviors: list[BehaviorResult] = field(default_factory=list)
+    behavior_dicts: list[dict] = field(default_factory=list)  # 含 person_key 的行为 dict 列表
     processing_time: float = 0.0
 
 
