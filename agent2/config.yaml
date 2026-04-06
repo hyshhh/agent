@@ -36,10 +36,12 @@ detector:
 
 # 关键帧提取配置
 frame_extractor:
-  padding_ratio: 0.15            # 人体框 padding 比例（四边各扩 15%）
+  padding_ratio: 0.15            # 正常 padding 倍率（大目标使用）
   keyframe_interval: 1           # 每隔几帧提取一帧关键帧
   keyframe_count: 1              # 提取的关键帧数量上限
   min_region_size: 32            # 最小有效区域像素（过小则跳过）
+  adaptive_padding: true         # 自适应 padding（小目标自动放大 padding）
+  pixel_threshold: 10000         # 最小裁剪面积阈值（像素²），低于此值自动增大 padding
 
 # 行为类别定义（可扩展）
 behavior_classes:

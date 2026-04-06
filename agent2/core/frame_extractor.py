@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 
 from models.schemas import PersonDetection, BoundingBox
-from utils.image_utils import pad_bbox, crop_region, encode_image_to_base64
+from utils.image_utils import pad_bbox, crop_region, encode_image_to_base64, compute_adaptive_padding
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -31,18 +31,35 @@ class FrameExtractor:
         keyframe_interval: int = 3,
         keyframe_count: int = 5,
         min_region_size: int = 32,
+        adaptive_padding: bool = True,
+        pixel_threshold: float = 10000.0,
     ):
         """
         Args:
-            padding_ratio: 人体框扩展比例（四边各扩 N%）
+            padding_ratio: 正常扩展比例（大目标使用，小目标时作为下限）
             keyframe_interval: 每隔几帧提取一帧
             keyframe_count: 最大关键帧数量
             min_region_size: 最小有效区域像素
+            adaptive_padding: 是否启用自适应 padding
+            pixel_threshold: 最小裁剪面积阈值（像素²）。
+                             当检测框面积小于此值时，padding 自动放大
+                             使裁剪区域达到该面积。提供此接口供用户微调。
         """
         self.padding_ratio = padding_ratio
         self.keyframe_interval = keyframe_interval
         self.keyframe_count = keyframe_count
         self.min_region_size = min_region_size
+        self.adaptive_padding = adaptive_padding
+        self.pixel_threshold = pixel_threshold
+
+    def _get_padding(self, bbox_w: float, bbox_h: float, frame_w: int, frame_h: int) -> float:
+        """根据配置返回 padding 比例（固定或自适应）"""
+        if self.adaptive_padding:
+            return compute_adaptive_padding(
+                bbox_w, bbox_h, frame_w, frame_h,
+                self.padding_ratio, self.pixel_threshold,
+            )
+        return self.padding_ratio
 
     def extract_from_detections(
         self,
@@ -70,11 +87,14 @@ class FrameExtractor:
 
         for det in detections:
             bbox = det.bbox
+            bw = bbox.x2 - bbox.x1
+            bh = bbox.y2 - bbox.y1
 
-            # Step 1: 添加 padding
+            # Step 1: 自适应 padding
+            pad_ratio = self._get_padding(bw, bh, w, h)
             px1, py1, px2, py2 = pad_bbox(
                 bbox.x1, bbox.y1, bbox.x2, bbox.y2,
-                self.padding_ratio, w, h,
+                pad_ratio, w, h,
             )
 
             # 检查区域大小
@@ -139,11 +159,14 @@ class FrameExtractor:
 
             det = detections[target_idx]
             h, w = frame.shape[:2]
+            bw = det.bbox.x2 - det.bbox.x1
+            bh = det.bbox.y2 - det.bbox.y1
 
-            # 扩展并裁剪
+            # 自适应扩展并裁剪
+            pad_ratio = self._get_padding(bw, bh, w, h)
             px1, py1, px2, py2 = pad_bbox(
                 det.bbox.x1, det.bbox.y1, det.bbox.x2, det.bbox.y2,
-                self.padding_ratio, w, h,
+                pad_ratio, w, h,
             )
 
             crop = crop_region(frame, px1, py1, px2, py2)
@@ -191,9 +214,13 @@ class FrameExtractor:
                     continue
 
                 h, w = frame.shape[:2]
+                bw = det.bbox.x2 - det.bbox.x1
+                bh = det.bbox.y2 - det.bbox.y1
+
+                pad_ratio = self._get_padding(bw, bh, w, h)
                 px1, py1, px2, py2 = pad_bbox(
                     det.bbox.x1, det.bbox.y1, det.bbox.x2, det.bbox.y2,
-                    self.padding_ratio, w, h,
+                    pad_ratio, w, h,
                 )
 
                 crop = crop_region(frame, px1, py1, px2, py2)

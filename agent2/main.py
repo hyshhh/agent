@@ -92,6 +92,8 @@ def build_pipeline(args: argparse.Namespace, config: dict) -> Pipeline:
         keyframe_interval=fe_cfg.get("keyframe_interval", 3),
         keyframe_count=fe_cfg.get("keyframe_count", 5),
         min_region_size=fe_cfg.get("min_region_size", 32),
+        adaptive_padding=fe_cfg.get("adaptive_padding", True),
+        pixel_threshold=fe_cfg.get("pixel_threshold", 10000.0),
     )
 
     # ---- 行为分类器 ----

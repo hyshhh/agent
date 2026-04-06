@@ -272,10 +272,14 @@ class Pipeline:
         try:
             last_camera_time = 0
             for frame in self.source.frames():
-                # 控制摄像头调用间隔
+                # 控制摄像头调用间隔（仅对摄像头/RTSP 有效，不影响视频文件）
                 current_time = time.time()
-                if current_time - last_camera_time < self.camera_interval:
-                    continue
+                is_camera = self.source.source_type in (
+                    VideoSourceType.CAMERA_USB, VideoSourceType.CAMERA_RTSP,
+                )
+                if is_camera:
+                    if current_time - last_camera_time < self.camera_interval:
+                        continue
                 last_camera_time = current_time
 
                 self._frame_count += 1
@@ -473,9 +477,12 @@ class Pipeline:
 
         h, w = frame.shape[:2]
         bbox = detection.bbox
+        bw = bbox.x2 - bbox.x1
+        bh = bbox.y2 - bbox.y1
+        pad_ratio = self.extractor._get_padding(bw, bh, w, h)
         px1, py1, px2, py2 = pad_bbox(
             bbox.x1, bbox.y1, bbox.x2, bbox.y2,
-            self.extractor.padding_ratio, w, h,
+            pad_ratio, w, h,
         )
 
         crop = crop_region(frame, px1, py1, px2, py2)

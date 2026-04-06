@@ -10,6 +10,49 @@ import cv2
 import numpy as np
 
 
+def compute_adaptive_padding(
+    bbox_w: float, bbox_h: float,
+    frame_w: int, frame_h: int,
+    padding_ratio: float = 0.15,
+    pixel_threshold: float = 10000.0,
+) -> float:
+    """
+    根据检测框像素面积自适应计算 padding。
+
+    规则：
+    - bbox 面积 >= pixel_threshold → 正常使用 padding_ratio（按倍率扩展）
+    - bbox 面积 <  pixel_threshold → 计算所需的 padding 使扩展后达到
+      pixel_threshold 面积（固定大小扩展）
+
+    Args:
+        bbox_w, bbox_h: 检测框的宽和高（像素）
+        frame_w, frame_h: 画面宽高
+        padding_ratio: 正常情况下的 padding 倍率（大目标使用）
+        pixel_threshold: 最小裁剪面积阈值（像素）。小于此值时，
+                         padding 会自动放大以达到该面积。
+
+    Returns:
+        适配后的 padding_ratio
+    """
+    bbox_area = bbox_w * bbox_h
+
+    # 大目标：直接用正常倍率
+    if bbox_area >= pixel_threshold:
+        return padding_ratio
+
+    # 小目标：计算使裁剪面积达到 pixel_threshold 所需的等效 padding
+    # 扩展后面积 = (w + 2*pw) * (h + 2*ph)
+    # 假设 pw = ratio * w, ph = ratio * h → 扩展后面积 = w*h*(1+2*ratio)²
+    # 解: pixel_threshold = bbox_area * (1 + 2*ratio)²
+    #     ratio = (sqrt(pixel_threshold / bbox_area) - 1) / 2
+    ratio = (pixel_threshold / max(bbox_area, 1.0)) ** 0.5
+    adaptive = (ratio - 1.0) / 2.0
+
+    # 限制上限防止裁剪过大（不超过画面的 80%）
+    max_pad = 2.0
+    return min(max(adaptive, padding_ratio), max_pad)
+
+
 def pad_bbox(
     x1: float, y1: float, x2: float, y2: float,
     padding_ratio: float,
