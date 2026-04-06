@@ -99,6 +99,7 @@ track_low_thresh: {track_low_thresh}
 new_track_thresh: {track_low_thresh}
 match_thresh: {match_thresh}
 track_buffer: {track_buffer}
+fuse_score: true
 """
         elif tracker_type == "botsort":
             content = f"""\
@@ -109,6 +110,7 @@ new_track_thresh: {track_low_thresh}
 match_thresh: {match_thresh}
 track_buffer: {track_buffer}
 gmc_method: sparseOptFlow
+fuse_score: true
 """
         else:
             raise ValueError(f"不支持的跟踪器类型: {tracker_type}")
