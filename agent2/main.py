@@ -90,6 +90,8 @@ def build_pipeline(args: argparse.Namespace, config: dict) -> Pipeline:
         track_low_thresh=trk_cfg.get("track_low_thresh", 0.1),
         match_thresh=trk_cfg.get("match_thresh", 0.8),
         track_buffer=trk_cfg.get("track_buffer", 30),
+        nms_iou=det_cfg.get("nms_iou", 0.5),
+        with_reid=trk_cfg.get("with_reid", False),
     )
 
     # ---- 关键帧提取器 ----

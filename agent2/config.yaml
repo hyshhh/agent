@@ -33,6 +33,7 @@ detector:
   class_id: 0                    # COCO 中 person 类的 ID
   detect_width: 640              # 检测推理宽度（0=保持原始分辨率）
   detect_height: 640             # 检测推理高度（0=保持原始分辨率）
+  nms_iou: 0.5                   # NMS IoU 阈值（越小越严格，合并更多重叠框）
 
 # 目标跟踪配置（ByteTrack）
 tracker:
@@ -42,6 +43,7 @@ tracker:
   track_low_thresh: 0.1          # 低置信度跟踪阈值（ByteTrack 二次匹配）
   match_thresh: 0.8              # 匹配阈值
   track_buffer: 30               # 跟踪丢失后保留帧数（ID保持时间）
+  with_reid: false               # BoT-SORT 是否启用 ReID 外观特征（需要额外下载模型）
 
 # 关键帧提取配置
 frame_extractor:

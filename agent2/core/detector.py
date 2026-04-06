@@ -40,6 +40,8 @@ class PersonDetector:
         track_low_thresh: float = 0.1,
         match_thresh: float = 0.8,
         track_buffer: int = 30,
+        nms_iou: float = 0.5,
+        with_reid: bool = False,
     ):
         """
         Args:
@@ -55,10 +57,13 @@ class PersonDetector:
             track_low_thresh: 低置信度跟踪阈值（ByteTrack 二次匹配）
             match_thresh: 匹配阈值
             track_buffer: 跟踪丢失后保留帧数
+            nms_iou: NMS IoU 阈值（合并重叠框的严格程度）
+            with_reid: BoT-SORT 是否启用 ReID 外观特征匹配
         """
         self.confidence = confidence
         self.device = device
         self.class_id = class_id
+        self.nms_iou = nms_iou
         self.detect_width = detect_width
         self.detect_height = detect_height
         self.tracker_enabled = tracker_enabled
@@ -70,7 +75,7 @@ class PersonDetector:
         # 构建 tracker 配置文件
         self.tracker_config = self._build_tracker_config(
             tracker_type, track_high_thresh, track_low_thresh,
-            match_thresh, track_buffer,
+            match_thresh, track_buffer, with_reid,
         )
 
         mode = f"跟踪({tracker_type})" if tracker_enabled else "仅检测"
@@ -86,6 +91,7 @@ class PersonDetector:
         track_low_thresh: float,
         match_thresh: float,
         track_buffer: int,
+        with_reid: bool = False,
     ) -> str:
         """生成 tracker YAML 配置文件并返回路径"""
         import tempfile
@@ -111,6 +117,7 @@ match_thresh: {match_thresh}
 track_buffer: {track_buffer}
 gmc_method: sparseOptFlow
 fuse_score: true
+with_reid: {str(with_reid).lower()}
 """
         else:
             raise ValueError(f"不支持的跟踪器类型: {tracker_type}")
@@ -160,6 +167,8 @@ fuse_score: true
                 device=self.device,
                 classes=[self.class_id],
                 conf=self.confidence,
+                iou=self.nms_iou,          # NMS IoU 阈值，从配置读取
+                max_det=50,            # 限制最大检测数，仓库场景不会超过50人
                 tracker=self.tracker_config,
                 persist=True,          # 跨帧保持 track_id
                 verbose=False,
@@ -170,6 +179,8 @@ fuse_score: true
                 device=self.device,
                 classes=[self.class_id],
                 conf=self.confidence,
+                iou=self.nms_iou,          # NMS IoU 阈值，从配置读取
+                max_det=50,
                 verbose=False,
             )
 
@@ -219,7 +230,64 @@ fuse_score: true
         # 按置信度降序
         detections.sort(key=lambda d: d.bbox.confidence, reverse=True)
 
+        # 对 person 检测框做 NMS 去重
+        detections = self._nms_persons(detections, iou_threshold=self.nms_iou)
+
         return detections
+
+    @staticmethod
+    def _nms_persons(
+        detections: list[PersonDetection],
+        iou_threshold: float = 0.5,
+    ) -> list[PersonDetection]:
+        """
+        对 person 检测框做 NMS 去重。
+        当模型对同一个人输出多个重叠框时，只保留置信度最高的一个。
+        使用标准 NMS（非 soft-NMS），IoU > 阈值的重叠框会被抑制。
+        """
+        if len(detections) <= 1:
+            return detections
+
+        boxes = np.array([
+            [d.bbox.x1, d.bbox.y1, d.bbox.x2, d.bbox.y2]
+            for d in detections
+        ], dtype=np.float64)
+        scores = np.array([d.bbox.confidence for d in detections])
+
+        x1, y1, x2, y2 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
+        areas = (x2 - x1) * (y2 - y1)
+        order = scores.argsort()[::-1]  # 置信度降序
+
+        keep = []
+        while order.size > 0:
+            i = order[0]
+            keep.append(i)
+
+            # 计算当前框与剩余框的 IoU
+            xx1 = np.maximum(x1[i], x1[order[1:]])
+            yy1 = np.maximum(y1[i], y1[order[1:]])
+            xx2 = np.minimum(x2[i], x2[order[1:]])
+            yy2 = np.minimum(y2[i], y2[order[1:]])
+
+            w = np.maximum(0.0, xx2 - xx1)
+            h = np.maximum(0.0, yy2 - yy1)
+            inter = w * h
+            iou = inter / (areas[i] + areas[order[1:]] - inter + 1e-6)
+
+            # 保留 IoU <= 阈值的框
+            inds = np.where(iou <= iou_threshold)[0]
+            order = order[inds + 1]
+
+        kept = [detections[i] for i in keep]
+
+        # 重新分配 track_id（被抑制的框的 track_id 不再使用）
+        # 保留最高置信度框的原始 track_id
+        if len(kept) < len(detections):
+            logger.debug(
+                f"NMS 去重: {len(detections)} → {len(kept)} 个检测框"
+            )
+
+        return kept
 
     def detect_batch(self, frames: list[np.ndarray]) -> list[list[PersonDetection]]:
         """批量检测多帧"""
