@@ -115,9 +115,12 @@ track_low_thresh: {track_low_thresh}
 new_track_thresh: {track_low_thresh}
 match_thresh: {match_thresh}
 track_buffer: {track_buffer}
-gmc_method: sparseOptFlow
 fuse_score: true
+gmc_method: sparseOptFlow
+proximity_thresh: 0.5
+appearance_thresh: 0.8
 with_reid: {str(with_reid).lower()}
+model: auto
 """
         else:
             raise ValueError(f"不支持的跟踪器类型: {tracker_type}")
