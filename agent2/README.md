@@ -33,8 +33,8 @@
 ### 2.1 系统要求
 
 - **操作系统**：Linux / Windows / macOS
-- **Python**：3.8 ~ 3.12
-- **GPU**（可选）：有 NVIDIA 显卡可以用 GPU 加速检测，没有也能跑（CPU）
+- **Python**：3.10 ~ 3.12
+- **GPU**（可选）：有 NVIDIA 显卡可以用 GPU 加速检测，没有也能跑（CPU）。CUDA 11.8+ 即可。
 
 ### 2.2 安装 Python
 
@@ -70,7 +70,7 @@ bash Miniconda3-latest-Linux-x86_64.sh
 创建环境：
 
 ```bash
-conda create -n agent python=3.11 -y
+conda create -n agent python=3.10 -y
 conda activate agent
 ```
 
