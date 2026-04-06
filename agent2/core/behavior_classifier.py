@@ -95,28 +95,46 @@ class BehaviorClassifier:
         """默认行为类别"""
         return [
             {
-                "id": "drowning",
+                "id": "0",
                 "label_cn": "溺水",
+                "label_en": "drowning",
                 "severity": "critical",
-                "description": "人员在水中失去自主行动能力，可能面部朝下，四肢无规律挣扎或静止不动",
+                "description": "四肢无规律挣扎，有溺水风险。",
             },
             {
-                "id": "swimming",
+                "id": "1",
                 "label_cn": "游泳",
+                "label_en": "swimming",
                 "severity": "normal",
-                "description": "人员在水中正常游泳，四肢协调有规律地运动",
+                "description": "人员在水中正常游泳。",
             },
             {
-                "id": "climbing_fence",
-                "label_cn": "翻栏杆",
+                "id": "2",
+                "label_cn": "攀爬栏杆",
+                "label_en": "climbing",
                 "severity": "warning",
-                "description": "人员攀爬或翻越栏杆、围栏等障碍物",
+                "description": "人员攀爬或翻越栏杆。",
             },
             {
-                "id": "normal_walking",
-                "label_cn": "正常步行",
+                "id": "3",
+                "label_cn": "正常行走",
+                "label_en": "normal_walking",
                 "severity": "normal",
-                "description": "人员正常行走或站立，姿态自然",
+                "description": "岸上人员正常行走或站立。",
+            },
+            {
+                "id": "4",
+                "label_cn": "正在救援",
+                "label_en": "waterhelping",
+                "severity": "normal",
+                "description": "水中人员抱住红色救生圈。",
+            },
+            {
+                "id": "5",
+                "label_cn": "在船上",
+                "label_en": "abord",
+                "severity": "normal",
+                "description": "人员在船上或在开船。",
             },
         ]
 

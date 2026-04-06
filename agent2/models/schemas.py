@@ -17,10 +17,12 @@ class Severity(str, Enum):
 
 class BehaviorID(str, Enum):
     """预定义行为 ID（可扩展）"""
-    DROWNING = "drowning"
-    SWIMMING = "swimming"
-    CLIMBING_FENCE = "climbing_fence"
-    NORMAL_WALKING = "normal_walking"
+    DROWNING = "0"
+    SWIMMING = "1"
+    CLIMBING = "2"
+    NORMAL_WALKING = "3"
+    WATERHELPING = "4"
+    ABOARD = "5"
     UNKNOWN = "unknown"
 
 
