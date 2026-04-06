@@ -157,17 +157,7 @@ python main.py --source video --input video.mp4 --api-key sk-你的key
 最简单的方式，准备一个视频文件（MP4），然后运行：
 
 ```bash
-python main.py --source video --input /path/to/your/video.mp4
-```
-
-**Windows 示例：**
-```bash
-python main.py --source video --input D:\videos\pool.mp4
-```
-
-**Linux 示例：**
-```bash
-python main.py --source video --input ~/videos/pool.mp4
+python main.py --source video --input /media/ddc/新加卷/hys/qmy/agent/agent2v1/2.mp4 --no-display
 ```
 
 ### 6.2 预期效果
@@ -187,7 +177,7 @@ python main.py --source video --input ~/videos/pool.mp4
 
 ### 6.3 无窗口模式（服务器）
 
-如果在没有显示器的服务器上运行：
+如果在没有显示器的服务器上运行，加上 `--no-display`：
 ```bash
 python main.py --source video --input /media/ddc/新加卷/hys/qmy/agent/agent2v1/2.mp4 --no-display
 ```
