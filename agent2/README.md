@@ -306,35 +306,70 @@ qwen:
 
 不需要 API Key，完全本地运行，数据不出本机。
 
-### 9.1 安装 vLLM
+### 9.1 安装 vLLM（单独开启一个环境）
 
 ```bash
 conda create -n vllm python=3.12 -y
 conda activate vllm
-pip install vllm modelscope
+pip install vllm
 ```
-
-> 需要 NVIDIA 显卡，显存 ≥ 8GB。
 
 ### 9.2 下载模型
 
 ```bash
-modelscope download --model Qwen/Qwen3-VL-4B-Instruct --local_dir ./models/qwen3-vl-4b
+pip install modelscope
+modelscope download --model Qwen/Qwen3-VL-4B-Instruct --local_dir /你的模型保存路径
 ```
 
-### 9.3 启动推理服务
+> 模型约 8GB，参考 [vLLM 官方支持模型列表](https://docs.vllm.com.cn/en/latest/usage/) 选择模型。
 
+### 9.3 启动服务
+
+**单卡启动：**
 ```bash
-CUDA_VISIBLE_DEVICES=0 vllm serve ./models/qwen3-vl-4b \
+vllm serve /你的模型路径 \
+  --api-key abc123 \
+  --served-model-name Qwen/Qwen3-VL-4B-Instruct \
+  --max-model-len 1024 \
+  --port 7890 \
+  --gpu-memory-utilization 0.4
+```
+
+**多卡启动（张量并行）：**
+```bash
+CUDA_VISIBLE_DEVICES=0,1 vllm serve /你的模型路径 \
   --api-key abc123 \
   --served-model-name Qwen/Qwen3-VL-4B-Instruct \
   --max-model-len 4096 \
+  --tensor-parallel-size 2 \
   --port 7890
 ```
 
+**参数说明：**
+
+| 参数 | 说明 |
+|---|---|
+| `--api-key` | 自己设置的密钥，客户端请求时需要提供 |
+| `--served-model-name` | 模型名称标识，客户端请求时使用 |
+| `--max-model-len` | 最大处理长度（输入 prompt + 生成内容的 token 总数） |
+| `--port` | 服务端口 |
+| `--tensor-parallel-size` | 张量并行数量，和使用的 GPU 卡数保持一致 |
+| `--gpu-memory-utilization` | GPU 显存占用比例（如 0.4 = 40%），显存紧张时调小 |
+
 看到 `Uvicorn running on http://0.0.0.0:7890` 就表示启动成功。
 
-### 9.4 切换到本地模式
+### 9.4 测试服务
+
+新开一个终端测试：
+```bash
+curl http://127.0.0.1:7890/v1/models -H "Authorization: Bearer abc123"
+```
+
+> `127.0.0.1` 是本地回环地址（localhost），永远只指向本机。
+
+应返回模型列表，确认 `Qwen/Qwen3-VL-4B-Instruct` 在其中。
+
+### 9.5 切换到本地模式
 
 编辑 `config.yaml`：
 ```yaml
