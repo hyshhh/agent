@@ -54,6 +54,28 @@ brew install python
 
 ### 2.3 创建虚拟环境（推荐）
 
+**方式 A：conda（推荐）**
+
+如果没有 conda，先安装 [Miniconda](https://docs.conda.io/en/latest/miniconda.html)：
+
+```bash
+# 下载安装（Linux）
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+
+# 下载安装（Windows）
+# 去 https://docs.conda.io/en/latest/miniconda.html 下载 .exe 安装包
+```
+
+创建环境：
+
+```bash
+conda create -n agent python=3.11 -y
+conda activate agent
+```
+
+**方式 B：venv**
+
 ```bash
 python3 -m venv agent-env
 source agent-env/bin/activate    # Linux/macOS
