@@ -164,12 +164,15 @@ def draw_detections(
         x2, y2 = int(bbox.x2), int(bbox.y2)
 
         color = (0, 255, 0)  # 默认绿色
-        label = f"Person {bbox.confidence:.2f}"
+        track_prefix = ""
+        if hasattr(det, "track_id") and det.track_id is not None:
+            track_prefix = f"[ID:{det.track_id}] "
+        label = f"{track_prefix}Person {bbox.confidence:.2f}"
 
         if behaviors and i < len(behaviors):
             b = behaviors[i]
             color = severity_colors.get(b.get("severity", "normal"), (0, 255, 0))
-            label = f"{b.get('behavior_label', '?')} {bbox.confidence:.2f}"
+            label = f"{track_prefix}{b.get('behavior_label', '?')} {bbox.confidence:.2f}"
 
         cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
 

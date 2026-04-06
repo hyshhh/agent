@@ -76,6 +76,7 @@ def build_pipeline(args: argparse.Namespace, config: dict) -> Pipeline:
 
     # ---- 人体检测器 ----
     det_cfg = config.get("detector", {})
+    trk_cfg = config.get("tracker", {})
     detector = PersonDetector(
         model_path=det_cfg.get("model", "yolov8n.pt"),
         confidence=det_cfg.get("confidence", 0.5),
@@ -83,6 +84,12 @@ def build_pipeline(args: argparse.Namespace, config: dict) -> Pipeline:
         class_id=det_cfg.get("class_id", 0),
         detect_width=det_cfg.get("detect_width", 0),
         detect_height=det_cfg.get("detect_height", 0),
+        tracker_enabled=trk_cfg.get("enabled", True),
+        tracker_type=trk_cfg.get("tracker_type", "bytetrack"),
+        track_high_thresh=trk_cfg.get("track_high_thresh", 0.5),
+        track_low_thresh=trk_cfg.get("track_low_thresh", 0.1),
+        match_thresh=trk_cfg.get("match_thresh", 0.8),
+        track_buffer=trk_cfg.get("track_buffer", 30),
     )
 
     # ---- 关键帧提取器 ----

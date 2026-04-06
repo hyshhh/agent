@@ -381,7 +381,7 @@ class Pipeline:
 
         behaviors: list[BehaviorResult] = []
 
-        for person_idx, keyframes_b64 in person_keyframes.items():
+        for person_key, keyframes_b64 in person_keyframes.items():
             if not keyframes_b64:
                 continue
 
@@ -389,19 +389,26 @@ class Pipeline:
             result = self.classifier.classify(keyframes_b64)
             behaviors.append(result)
 
+            # person_key 为 track_id（有跟踪）或 list index（无跟踪）
+            person_label = f"track#{person_key}" if any(
+                d.track_id is not None for d in last_detections
+            ) else f"#{person_key}"
+
             logger.info(
-                f"[帧 {frame_index}] 人物#{person_idx}: "
+                f"[帧 {frame_index}] 人物{person_label}: "
                 f"{result.behavior_label} ({result.behavior_id}) "
                 f"[{result.severity.value}]"
             )
 
-            # 保存裁剪图
-            if self.save_crops and person_idx < len(last_detections):
-                self._save_crop(frame, last_detections[person_idx], frame_index, person_idx)
+            # 保存裁剪图 — 用 person_key 匹配对应的 detection
+            if self.save_crops:
+                target_det = self._find_detection(last_detections, person_key)
+                if target_det is not None:
+                    self._save_crop(frame, target_det, frame_index, person_key)
 
             # 告警处理
             if result.is_alert():
-                self._handle_alert(result, frame_index, person_idx)
+                self._handle_alert(result, frame_index, person_key)
 
             # 记录到报告
             self._record_behavior(result, frame_index)
@@ -410,10 +417,10 @@ class Pipeline:
             if self._camera_log is not None:
                 self._camera_log.add_entry(
                     frame_index=frame_index,
-                    person_idx=person_idx,
+                    person_idx=person_key,
                     result=result,
                 )
-                logger.debug(f"日志条目已添加: frame_index={frame_index}, person_idx={person_idx}, behavior={result.behavior_id}")
+                logger.debug(f"日志条目已添加: frame_index={frame_index}, person={person_label}, behavior={result.behavior_id}")
                 logger.debug(f"当前日志条目数: {self._camera_log.entry_count}")
 
         analysis.behaviors = behaviors
@@ -492,6 +499,21 @@ class Pipeline:
                 f"frame{frame_index:06d}_person{person_idx}.jpg"
             )
             save_image(crop, path)
+
+    @staticmethod
+    def _find_detection(
+        detections: list[PersonDetection],
+        person_key: int,
+    ) -> Optional[PersonDetection]:
+        """根据 person_key（track_id 或 list index）找到对应检测结果"""
+        # 优先按 track_id 匹配
+        for det in detections:
+            if det.track_id == person_key:
+                return det
+        # fallback: 按 list index
+        if 0 <= person_key < len(detections):
+            return detections[person_key]
+        return None
 
     def _handle_alert(
         self,

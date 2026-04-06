@@ -189,24 +189,37 @@ class FrameExtractor:
         """
         为帧缓冲区中的每个人物分别提取关键帧序列。
 
+        优先使用 track_id（ByteTrack 跟踪 ID）做人物归组；
+        若 track_id 全部为 None（未启用跟踪），回退到 list index 归组。
+
         Returns:
-            {person_index: [base64_frame, ...], ...}
+            {person_key: [base64_frame, ...], ...}
+            person_key 为 track_id（int）或 fallback list index（int）
         """
         if not frame_buffer:
             return {}
+
+        # 判断是否启用跟踪
+        has_tracking = any(
+            det.track_id is not None
+            for _, detections in frame_buffer
+            for det in detections
+        )
 
         # 统计每个人出现的帧
         person_frames: dict[int, list[tuple[np.ndarray, PersonDetection]]] = {}
 
         for frame, detections in frame_buffer:
             for idx, det in enumerate(detections):
-                if idx not in person_frames:
-                    person_frames[idx] = []
-                person_frames[idx].append((frame, det))
+                # 用 track_id 做 key，无跟踪时回退到 list index
+                key = det.track_id if has_tracking and det.track_id is not None else idx
+                if key not in person_frames:
+                    person_frames[key] = []
+                person_frames[key].append((frame, det))
 
         result: dict[int, list[str]] = {}
 
-        for person_idx, frames_list in person_frames.items():
+        for person_key, frames_list in person_frames.items():
             keyframes_b64: list[str] = []
 
             for i, (frame, det) in enumerate(frames_list):
@@ -234,6 +247,6 @@ class FrameExtractor:
                     break
 
             if keyframes_b64:
-                result[person_idx] = keyframes_b64
+                result[person_key] = keyframes_b64
 
         return result

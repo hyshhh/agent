@@ -1,4 +1,4 @@
-"""人体检测器 — 基于 YOLOv8"""
+"""人体检测器 — 基于 YOLOv8 + ByteTrack 目标跟踪"""
 
 from __future__ import annotations
 
@@ -16,13 +16,14 @@ logger = get_logger()
 
 class PersonDetector:
     """
-    使用 YOLOv8 进行人体检测。
+    使用 YOLOv8 进行人体检测，支持 ByteTrack 目标跟踪。
 
     支持：
     - 自动下载预训练模型
     - CPU / GPU 推理
     - 可配置置信度阈值
     - 可配置检测分辨率（降低推理时间）
+    - ByteTrack 目标跟踪，为每个检测目标分配稳定的 track_id
     """
 
     def __init__(
@@ -33,6 +34,12 @@ class PersonDetector:
         class_id: int = 0,
         detect_width: int = 0,
         detect_height: int = 0,
+        tracker_enabled: bool = True,
+        tracker_type: str = "bytetrack",
+        track_high_thresh: float = 0.5,
+        track_low_thresh: float = 0.1,
+        match_thresh: float = 0.8,
+        track_buffer: int = 30,
     ):
         """
         Args:
@@ -42,36 +49,96 @@ class PersonDetector:
             class_id: COCO 数据集中 person 类的 ID（0）
             detect_width: 检测推理宽度（0=保持原始分辨率）
             detect_height: 检测推理高度（0=保持原始分辨率）
+            tracker_enabled: 是否启用目标跟踪
+            tracker_type: 跟踪器类型 ("bytetrack" / "botsort")
+            track_high_thresh: 高置信度跟踪阈值
+            track_low_thresh: 低置信度跟踪阈值（ByteTrack 二次匹配）
+            match_thresh: 匹配阈值
+            track_buffer: 跟踪丢失后保留帧数
         """
         self.confidence = confidence
         self.device = device
         self.class_id = class_id
         self.detect_width = detect_width
         self.detect_height = detect_height
+        self.tracker_enabled = tracker_enabled
+        self.tracker_type = tracker_type
 
         logger.info(f"加载 YOLOv8 模型: {model_path} (device={device})")
         self.model = YOLO(model_path)
-        logger.info(
-            f"模型加载完成, 检测分辨率: "
-            f"{'原始' if detect_width == 0 else f'{detect_width}x{detect_height}'}"
+
+        # 构建 tracker 配置文件
+        self.tracker_config = self._build_tracker_config(
+            tracker_type, track_high_thresh, track_low_thresh,
+            match_thresh, track_buffer,
         )
+
+        mode = f"跟踪({tracker_type})" if tracker_enabled else "仅检测"
+        logger.info(
+            f"模型加载完成, 模式={mode}, "
+            f"检测分辨率: {'原始' if detect_width == 0 else f'{detect_width}x{detect_height}'}"
+        )
+
+    @staticmethod
+    def _build_tracker_config(
+        tracker_type: str,
+        track_high_thresh: float,
+        track_low_thresh: float,
+        match_thresh: float,
+        track_buffer: int,
+    ) -> str:
+        """生成 tracker YAML 配置文件并返回路径"""
+        import tempfile
+        import os
+
+        if tracker_type == "bytetrack":
+            content = f"""\
+tracker_type: bytetrack
+track_high_thresh: {track_high_thresh}
+track_low_thresh: {track_low_thresh}
+new_track_thresh: {track_low_thresh}
+match_thresh: {match_thresh}
+track_buffer: {track_buffer}
+"""
+        elif tracker_type == "botsort":
+            content = f"""\
+tracker_type: botsort
+track_high_thresh: {track_high_thresh}
+track_low_thresh: {track_low_thresh}
+new_track_thresh: {track_low_thresh}
+match_thresh: {match_thresh}
+track_buffer: {track_buffer}
+gmc_method: sparseOptFlow
+"""
+        else:
+            raise ValueError(f"不支持的跟踪器类型: {tracker_type}")
+
+        # 写入临时文件
+        config_path = os.path.join(tempfile.gettempdir(), f"tracker_{tracker_type}.yaml")
+        with open(config_path, "w") as f:
+            f.write(content)
+
+        return config_path
 
     def detect(self, frame: np.ndarray, frame_index: int = 0) -> list[PersonDetection]:
         """
         在单帧图像中检测人体。
+
+        如果启用跟踪，使用 model.track() 返回带 track_id 的结果；
+        否则使用 model.predict() 纯检测。
 
         Args:
             frame: BGR 格式的帧图像
             frame_index: 帧序号（用于追踪）
 
         Returns:
-            PersonDetection 列表，按置信度降序排列
+            PersonDetection 列表（含 track_id），按置信度降序排列
         """
         import time
 
         orig_h, orig_w = frame.shape[:2]
 
-        # 缩放到检测分辨率（需求1：降低推理时间）
+        # 缩放到检测分辨率
         if self.detect_width > 0 and self.detect_height > 0:
             infer_frame = cv2.resize(
                 frame, (self.detect_width, self.detect_height),
@@ -84,13 +151,25 @@ class PersonDetector:
             scale_x = 1.0
             scale_y = 1.0
 
-        results = self.model(
-            infer_frame,
-            device=self.device,
-            classes=[self.class_id],
-            conf=self.confidence,
-            verbose=False,
-        )
+        # 选择检测或跟踪模式
+        if self.tracker_enabled:
+            results = self.model.track(
+                infer_frame,
+                device=self.device,
+                classes=[self.class_id],
+                conf=self.confidence,
+                tracker=self.tracker_config,
+                persist=True,          # 跨帧保持 track_id
+                verbose=False,
+            )
+        else:
+            results = self.model(
+                infer_frame,
+                device=self.device,
+                classes=[self.class_id],
+                conf=self.confidence,
+                verbose=False,
+            )
 
         detections: list[PersonDetection] = []
 
@@ -102,6 +181,11 @@ class PersonDetector:
                 # 提取坐标和置信度
                 xyxy = box.xyxy[0].cpu().numpy()
                 conf = float(box.conf[0].cpu().numpy())
+
+                # 提取 track_id（跟踪模式下可用）
+                track_id = None
+                if self.tracker_enabled and box.id is not None:
+                    track_id = int(box.id[0].cpu().numpy())
 
                 # 将坐标映射回原始分辨率
                 x1 = float(xyxy[0]) * scale_x
@@ -126,6 +210,7 @@ class PersonDetector:
                         frame_index=frame_index,
                         timestamp=time.time(),
                         bbox=bbox,
+                        track_id=track_id,
                     )
                 )
 

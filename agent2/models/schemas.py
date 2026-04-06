@@ -61,6 +61,7 @@ class PersonDetection:
     frame_index: int
     timestamp: float
     bbox: BoundingBox
+    track_id: Optional[int] = None  # ByteTrack 跟踪 ID（无跟踪时为 None）
     cropped_image: Optional[bytes] = None  # JPEG 编码的裁剪图
 
 
