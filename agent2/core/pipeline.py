@@ -423,7 +423,7 @@ class Pipeline:
             # 无追踪模式：使用 list index 作为 person_key
             person_key = det_idx
 
-            # 对当前帧中该人物裁剪并编码
+            # 对当前帧中该人物裁剪一次（分类和保存共用）
             bw = det.bbox.x2 - det.bbox.x1
             bh = det.bbox.y2 - det.bbox.y1
             pad_ratio = self.extractor._get_padding(bw, bh, w, h)
@@ -447,9 +447,9 @@ class Pipeline:
                 f"[{result.severity.value}]"
             )
 
-            # 保存裁剪图
+            # 保存裁剪图（复用已裁好的 crop，不再重复裁剪）
             if self.save_crops:
-                self._save_crop(frame, det, frame_index, person_key)
+                self._save_crop(frame, det, frame_index, person_key, crop_image=crop)
 
             # 告警处理
             if result.is_alert():
@@ -627,19 +627,23 @@ class Pipeline:
         detection: PersonDetection,
         frame_index: int,
         person_idx: int,
+        crop_image: Optional[np.ndarray] = None,
     ):
-        """保存人体裁剪图"""
-        h, w = frame.shape[:2]
-        bbox = detection.bbox
-        bw = bbox.x2 - bbox.x1
-        bh = bbox.y2 - bbox.y1
-        pad_ratio = self.extractor._get_padding(bw, bh, w, h)
-        px1, py1, px2, py2 = pad_bbox(
-            bbox.x1, bbox.y1, bbox.x2, bbox.y2,
-            pad_ratio, w, h,
-        )
+        """保存人体裁剪图。如果传入 crop_image 则直接保存，不再重复裁剪。"""
+        if crop_image is not None:
+            crop = crop_image
+        else:
+            h, w = frame.shape[:2]
+            bbox = detection.bbox
+            bw = bbox.x2 - bbox.x1
+            bh = bbox.y2 - bbox.y1
+            pad_ratio = self.extractor._get_padding(bw, bh, w, h)
+            px1, py1, px2, py2 = pad_bbox(
+                bbox.x1, bbox.y1, bbox.x2, bbox.y2,
+                pad_ratio, w, h,
+            )
+            crop = crop_region(frame, px1, py1, px2, py2)
 
-        crop = crop_region(frame, px1, py1, px2, py2)
         if crop is not None:
             path = os.path.join(
                 self.output_dir, "crops",
