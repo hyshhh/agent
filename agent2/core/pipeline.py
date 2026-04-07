@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from collections import defaultdict, deque
+from collections import deque
 from typing import Optional, Callable
 
 import cv2
@@ -20,9 +20,8 @@ from models.schemas import (
     PersonDetection,
     BehaviorResult,
     AnalysisReport,
-    Severity,
 )
-from utils.image_utils import draw_detections, save_image
+from utils.image_utils import draw_detections, save_image, pad_bbox, crop_region, encode_image_to_base64
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -155,27 +154,29 @@ class Pipeline:
         classifier: BehaviorClassifier,
         video_source: VideoSource,
         process_every_n_frames: int = 5,
-        camera_interval: float = 0.1,  # 摄像头调用间隔（秒）
+        buffer_size: int = 5,
+        camera_interval: float = 0.1,
         alert_cooldown: int = 30,
-        sustained_detection_frames: int = 1,  # 需求3：连续N帧检测到才触发API
+        sustained_detection_frames: int = 1,
         output_dir: str = "output",
         save_annotated: bool = True,
         save_crops: bool = True,
         save_report: bool = True,
         display: bool = True,
-        display_scale: float = 0.5,  # 视频窗口缩放比例
-        camera_log_enabled: bool = True,         # 需求2：是否启用摄像头日志
-        camera_log_retention_hours: float = 2.0,  # 需求2：日志保留时长
+        display_scale: float = 0.5,
+        camera_log_enabled: bool = True,
+        camera_log_retention_hours: float = 2.0,
         camera_log_filename: str = "camera_behavior_log.json",
         alert_callback: Optional[Callable] = None,
     ):
         """
         Args:
-            detector: 人体检测器
+            detector: 人体检测器（内置追踪器开关）
             frame_extractor: 关键帧提取器
             classifier: 行为分类器
             video_source: 视频输入源
-            process_every_n_frames: 每 N 帧触发一次行为分析
+            process_every_n_frames: 每 N 帧触发一次行为分析（控制 API 调用频率）
+            buffer_size: 历史帧缓冲区大小（仅追踪模式生效，控制 temporal 范围）
             camera_interval: 摄像头调用间隔（秒）
             alert_cooldown: 同一行为告警冷却秒数
             sustained_detection_frames: 连续N帧检测到目标才触发API（需求3）
@@ -188,13 +189,14 @@ class Pipeline:
             camera_log_enabled: 是否启用摄像头行为日志（需求2）
             camera_log_retention_hours: 日志保留时长-小时（需求2）
             camera_log_filename: 日志文件名（需求2）
-            alert_callback: 告警回调函数 fn(behavior_result, frame, detections)
+            alert_callback: 告警回调函数 fn(behavior_result, frame_index, person_key)
         """
         self.detector = detector
         self.extractor = frame_extractor
         self.classifier = classifier
         self.source = video_source
-        self.process_interval = process_every_n_frames
+        self.process_interval = max(1, process_every_n_frames)
+        self.buffer_size = max(1, buffer_size)
         self.camera_interval = camera_interval
         self.alert_cooldown = alert_cooldown
         self.sustained_detection_frames = max(1, sustained_detection_frames)
@@ -206,10 +208,15 @@ class Pipeline:
         self.display_scale = display_scale
         self.alert_callback = alert_callback
 
-        # 帧缓冲区（滑动窗口）
-        self._frame_buffer: deque[tuple[np.ndarray, list[PersonDetection]]] = deque(
-            maxlen=process_every_n_frames
-        )
+        # 追踪模式判断
+        self.tracking_enabled = getattr(detector, 'tracker_enabled', False)
+
+        # 帧缓冲区（仅追踪模式启用）：
+        # - 追踪模式：滑动窗口，长度由 buffer_size 独立控制
+        # - 无追踪模式：不维护缓冲区，逐帧独立分析
+        self._frame_buffer: Optional[deque[tuple[np.ndarray, list[PersonDetection]]]] = None
+        if self.tracking_enabled:
+            self._frame_buffer = deque(maxlen=self.buffer_size)
 
         # 告警冷却记录 {behavior_id: last_alert_time}
         self._alert_cooldowns: dict[str, float] = {}
@@ -236,10 +243,8 @@ class Pipeline:
             os.makedirs(os.path.join(output_dir, "annotated"), exist_ok=True)
 
         # 需求2：如果是摄像头模式且启用日志，初始化日志管理器
-        logger.debug(f"调试信息: _camera_log_enabled={self._camera_log_enabled}, source_type={self.source.source_type}, type={type(self.source.source_type)}")
-        # 检查是否为摄像头模式（USB摄像头或RTSP流）
         is_camera_mode = self.source.source_type in (VideoSourceType.CAMERA_USB, VideoSourceType.CAMERA_RTSP)
-        logger.debug(f"调试信息: is_camera_mode={is_camera_mode}")
+        logger.debug(f"调试信息: _camera_log_enabled={self._camera_log_enabled}, is_camera_mode={is_camera_mode}")
         
         if self._camera_log_enabled and is_camera_mode:
             self._camera_log = CameraBehaviorLog(
@@ -257,11 +262,24 @@ class Pipeline:
 
         从视频源读取帧，执行检测→提取→分类的完整流程。
         支持按键中断（按 'q' 退出）。
+
+        追踪模式（tracking_enabled=True）：
+            使用滑动窗口缓冲区（buffer_size 控制历史范围），
+            每 process_every_n_frames 帧触发一次行为分析。
+
+        无追踪模式（tracking_enabled=False）：
+            不维护帧缓冲区，仅对当前帧逐帧分析，
+            每 process_every_n_frames 帧触发一次行为分析。
         """
         logger.info("=" * 50)
         logger.info("行为识别流水线启动")
+        logger.info(f"  追踪模式: {'启用' if self.tracking_enabled else '禁用'}")
         logger.info(f"  持续帧阈值: {self.sustained_detection_frames} 帧")
         logger.info(f"  处理间隔: 每 {self.process_interval} 帧")
+        if self.tracking_enabled:
+            logger.info(f"  缓冲区大小: {self.buffer_size} 帧")
+        else:
+            logger.info(f"  缓冲区: 禁用（单帧分析模式）")
         if self._camera_log is not None:
             logger.info(f"  摄像头日志: 已启用, 保留 {self._camera_log_retention_hours}h")
         logger.info("=" * 50)
@@ -285,11 +303,13 @@ class Pipeline:
                 self._frame_count += 1
                 self._report.total_frames = self._frame_count
 
-                # Step 1: 人体检测
+                # Step 1: 人体检测（含或不含追踪）
                 detections = self.detector.detect(frame, self._frame_count)
 
-                # Step 2: 加入帧缓冲区
-                self._frame_buffer.append((frame.copy(), detections))
+                # Step 2: 帧缓冲区管理
+                if self.tracking_enabled and self._frame_buffer is not None:
+                    # 追踪模式：加入滑动窗口缓冲区
+                    self._frame_buffer.append((frame.copy(), detections))
 
                 # Step 3: 需求3 — 持续帧计数
                 if detections:
@@ -297,17 +317,21 @@ class Pipeline:
                 else:
                     self._consecutive_detection_count = 0
 
-                # Step 4: 定期触发行为分析（需求3：需同时满足持续帧条件）
+                # Step 4: 定期触发行为分析
                 frame_analysis = None
-                sustained_enough = (
-                    self._consecutive_detection_count >= self.sustained_detection_frames
-                )
-                if (
+                should_process = (
                     self._frame_count % self.process_interval == 0
                     and detections
-                    and sustained_enough
-                ):
-                    frame_analysis = self._analyze_buffer(self._frame_count)
+                    and self._consecutive_detection_count >= self.sustained_detection_frames
+                )
+
+                if should_process:
+                    if self.tracking_enabled:
+                        # 追踪模式：基于缓冲区多帧分析
+                        frame_analysis = self._analyze_buffer(self._frame_count)
+                    else:
+                        # 无追踪模式：仅分析当前帧（不依赖缓冲区）
+                        frame_analysis = self._analyze_single_frame(frame, detections, self._frame_count)
                     self._processed_count += 1
 
                 # Step 5: 可视化
@@ -318,6 +342,12 @@ class Pipeline:
                         annotated,
                         f"Sustained: {self._consecutive_detection_count}/{self.sustained_detection_frames}",
                         (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 0), 1,
+                    )
+                    # 显示追踪状态
+                    track_label = "Track: ON" if self.tracking_enabled else "Track: OFF"
+                    cv2.putText(
+                        annotated, track_label, (10, 115),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 200, 200) if self.tracking_enabled else (128, 128, 128), 1,
                     )
                     # 缩小视频窗口
                     if self.display_scale != 1.0:
@@ -353,11 +383,116 @@ class Pipeline:
                     except Exception as log_error:
                         logger.error(f"保存摄像头日志失败: {log_error}")
 
+    def _analyze_single_frame(
+        self,
+        frame: np.ndarray,
+        detections: list[PersonDetection],
+        frame_index: int,
+    ) -> Optional[FrameAnalysis]:
+        """
+        无追踪模式下的单帧分析。
+
+        不依赖帧缓冲区，仅对当前帧中的人物逐个裁剪并调用模型分析。
+        每个人物用 list index 作为标识（无 track_id）。
+
+        Args:
+            frame: 当前帧
+            detections: 当前帧的检测结果
+            frame_index: 帧序号
+
+        Returns:
+            FrameAnalysis 分析结果
+        """
+        if not detections:
+            return None
+
+        start_time = time.time()
+        h, w = frame.shape[:2]
+
+        analysis = FrameAnalysis(
+            frame_index=frame_index,
+            timestamp=time.time(),
+            frame_width=w,
+            frame_height=h,
+            detections=detections,
+        )
+
+        tagged_behaviors: list[tuple[int, BehaviorResult]] = []
+
+        for det_idx, det in enumerate(detections):
+            # 无追踪模式：使用 list index 作为 person_key
+            person_key = det_idx
+
+            # 对当前帧中该人物裁剪并编码
+            bw = det.bbox.x2 - det.bbox.x1
+            bh = det.bbox.y2 - det.bbox.y1
+            pad_ratio = self.extractor._get_padding(bw, bh, w, h)
+            px1, py1, px2, py2 = pad_bbox(
+                det.bbox.x1, det.bbox.y1, det.bbox.x2, det.bbox.y2,
+                pad_ratio, w, h,
+            )
+            crop = crop_region(frame, px1, py1, px2, py2)
+            if crop is None:
+                continue
+
+            crop_b64 = encode_image_to_base64(crop, fmt=".jpg", quality=80)
+
+            # 单帧调用分类器
+            result = self.classifier.classify([crop_b64])
+            tagged_behaviors.append((person_key, result))
+
+            logger.info(
+                f"[帧 {frame_index}] 人物#{person_key}: "
+                f"{result.behavior_label} ({result.behavior_id}) "
+                f"[{result.severity.value}]"
+            )
+
+            # 保存裁剪图
+            if self.save_crops:
+                self._save_crop(frame, det, frame_index, person_key)
+
+            # 告警处理
+            if result.is_alert():
+                self._handle_alert(result, frame_index, person_key)
+
+            # 记录到报告
+            self._record_behavior(result, frame_index)
+
+            # 摄像头行为日志
+            if self._camera_log is not None:
+                self._camera_log.add_entry(
+                    frame_index=frame_index,
+                    person_idx=person_key,
+                    result=result,
+                )
+
+        behaviors = [r for _, r in tagged_behaviors]
+        behavior_dicts = [
+            {
+                "person_key": pk,
+                "behavior_label": r.behavior_label,
+                "severity": r.severity.value,
+            }
+            for pk, r in tagged_behaviors
+        ]
+        analysis.behaviors = behaviors
+        analysis.behavior_dicts = behavior_dicts
+        analysis.processing_time = time.time() - start_time
+
+        # 保存标注帧
+        if self.save_annotated:
+            annotated = draw_detections(frame, detections, behavior_dicts)
+            path = os.path.join(self.output_dir, "annotated", f"frame_{frame_index:06d}.jpg")
+            save_image(annotated, path)
+
+        self._report.frame_analyses.append(analysis)
+        return analysis
+
     def _analyze_buffer(self, frame_index: int) -> Optional[FrameAnalysis]:
         """
-        分析帧缓冲区中的内容。
+        追踪模式下的缓冲区分析。
 
-        为每个人物提取关键帧并调用模型分析。
+        基于滑动窗口缓冲区（buffer_size 控制历史范围）为每个人物提取关键帧并调用模型分析。
         以 last_detections 顺序为基准，确保 behaviors 与 detections 一一对应。
         """
         if not self._frame_buffer:
@@ -376,16 +511,15 @@ class Pipeline:
         )
 
         # 提取关键帧 {person_key: [base64_frames]}
-        tracker_enabled = getattr(self.detector, "tracker_enabled", False)
         person_keyframes = self.extractor.extract_multi_person_keyframes(
             list(self._frame_buffer),
-            tracker_enabled=tracker_enabled,
+            tracker_enabled=self.tracking_enabled,
         )
 
         # ---- 以 last_detections 顺序为基准，逐人分析 ----
         # 用 (person_key, result) 二元组，确保每个 behavior 都带有明确归属
         tagged_behaviors: list[tuple[int, BehaviorResult]] = []
-        has_tracking = tracker_enabled and any(
+        has_tracking = self.tracking_enabled and any(
             d.track_id is not None for d in last_detections
         )
 
@@ -495,8 +629,6 @@ class Pipeline:
         person_idx: int,
     ):
         """保存人体裁剪图"""
-        from utils.image_utils import pad_bbox, crop_region
-
         h, w = frame.shape[:2]
         bbox = detection.bbox
         bw = bbox.x2 - bbox.x1
@@ -515,20 +647,6 @@ class Pipeline:
             )
             save_image(crop, path)
 
-    @staticmethod
-    def _find_detection(
-        detections: list[PersonDetection],
-        person_key: int,
-    ) -> Optional[PersonDetection]:
-        """根据 person_key（track_id 或 list index）找到对应检测结果"""
-        # 优先按 track_id 匹配
-        for det in detections:
-            if det.track_id == person_key:
-                return det
-        # fallback: 按 list index
-        if 0 <= person_key < len(detections):
-            return detections[person_key]
-        return None
 
     def _handle_alert(
         self,

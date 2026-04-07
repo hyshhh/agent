@@ -146,6 +146,7 @@ def build_pipeline(args: argparse.Namespace, config: dict) -> Pipeline:
         classifier=classifier,
         video_source=video_source,
         process_every_n_frames=pp_cfg.get("process_every_n_frames", 5),
+        buffer_size=pp_cfg.get("buffer_size", 5),
         camera_interval=pp_cfg.get("camera_interval", 0.1),
         alert_cooldown=pp_cfg.get("alert_cooldown", 30),
         sustained_detection_frames=pp_cfg.get("sustained_detection_frames", 1),  # 需求3

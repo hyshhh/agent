@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Optional
 
 import cv2
-import numpy as np
 from ultralytics import YOLO
 
 from models.schemas import BoundingBox, PersonDetection
@@ -233,64 +232,7 @@ model: auto
         # 按置信度降序
         detections.sort(key=lambda d: d.bbox.confidence, reverse=True)
 
-        # 对 person 检测框做 NMS 去重
-        detections = self._nms_persons(detections, iou_threshold=self.nms_iou)
-
         return detections
-
-    @staticmethod
-    def _nms_persons(
-        detections: list[PersonDetection],
-        iou_threshold: float = 0.5,
-    ) -> list[PersonDetection]:
-        """
-        对 person 检测框做 NMS 去重。
-        当模型对同一个人输出多个重叠框时，只保留置信度最高的一个。
-        使用标准 NMS（非 soft-NMS），IoU > 阈值的重叠框会被抑制。
-        """
-        if len(detections) <= 1:
-            return detections
-
-        boxes = np.array([
-            [d.bbox.x1, d.bbox.y1, d.bbox.x2, d.bbox.y2]
-            for d in detections
-        ], dtype=np.float64)
-        scores = np.array([d.bbox.confidence for d in detections])
-
-        x1, y1, x2, y2 = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
-        areas = (x2 - x1) * (y2 - y1)
-        order = scores.argsort()[::-1]  # 置信度降序
-
-        keep = []
-        while order.size > 0:
-            i = order[0]
-            keep.append(i)
-
-            # 计算当前框与剩余框的 IoU
-            xx1 = np.maximum(x1[i], x1[order[1:]])
-            yy1 = np.maximum(y1[i], y1[order[1:]])
-            xx2 = np.minimum(x2[i], x2[order[1:]])
-            yy2 = np.minimum(y2[i], y2[order[1:]])
-
-            w = np.maximum(0.0, xx2 - xx1)
-            h = np.maximum(0.0, yy2 - yy1)
-            inter = w * h
-            iou = inter / (areas[i] + areas[order[1:]] - inter + 1e-6)
-
-            # 保留 IoU <= 阈值的框
-            inds = np.where(iou <= iou_threshold)[0]
-            order = order[inds + 1]
-
-        kept = [detections[i] for i in keep]
-
-        # 重新分配 track_id（被抑制的框的 track_id 不再使用）
-        # 保留最高置信度框的原始 track_id
-        if len(kept) < len(detections):
-            logger.debug(
-                f"NMS 去重: {len(detections)} → {len(kept)} 个检测框"
-            )
-
-        return kept
 
     def detect_batch(self, frames: list[np.ndarray]) -> list[list[PersonDetection]]:
         """批量检测多帧"""
